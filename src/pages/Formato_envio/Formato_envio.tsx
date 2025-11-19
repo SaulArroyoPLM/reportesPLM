@@ -23,7 +23,8 @@ function FormatoEnvio() {
     const [mensaje, setMensaje] = useState({ tipo: '', texto: '' }); // 👈 Para mensajes
 
     // URL del webhook de Make (reemplaza con la tuya)
-    const MAKE_WEBHOOK_URL = 'https://hook.us1.make.com/TU_WEBHOOK_AQUI';
+   const MAKE_WEBHOOK_URL = 'https://hook.us2.make.com/ohn9salf7uf6pxqpsuy31bpd47rslzcx';
+
 
     const handleChange = (e) => {
         const { name, value } = e.target;
