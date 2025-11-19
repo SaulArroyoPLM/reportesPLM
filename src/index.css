@@ -1,0 +1,283 @@
+@font-face {
+    font-family: 'Lato';
+    src: url('webfonts/Lato/Lato-Thin.ttf') format('truetype');
+    font-weight: 100;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Lato';
+    src: url('webfonts/Lato/Lato-ThinItalic.ttf') format('truetype');
+    font-weight: 100;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Lato';
+    src: url('webfonts/Lato/Lato-Light.ttf') format('truetype');
+    font-weight: 300;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Lato';
+    src: url('webfonts/Lato/Lato-LightItalic.ttf') format('truetype');
+    font-weight: 300;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Lato';
+    src: url('webfonts/Lato/Lato-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Lato';
+    src: url('webfonts/Lato/Lato-Italic.ttf') format('truetype');
+    font-weight: 400;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Lato';
+    src: url('webfonts/Lato/Lato-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Lato';
+    src: url('webfonts/Lato/Lato-BoldItalic.ttf') format('truetype');
+    font-weight: 700;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Lato';
+    src: url('webfonts/Lato/Lato-Black.ttf') format('truetype');
+    font-weight: 900;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Lato';
+    src: url('webfonts/Lato/Lato-BlackItalic.ttf') format('truetype');
+    font-weight: 900;
+    font-style: italic;
+}
+
+body {
+    font-size: clamp(14px, 1rem + 0.4vw, 18px);
+    line-height: 1.6;
+  }
+
+  p, li, span, button {
+    font-size: 1em; /* hereda del body */
+  }
+/* Botón del acordeón responsivo */
+.accordion-button {
+      font-size: clamp(12px, 1rem + 0.3vw, 18px); 
+      
+    }
+
+
+
+    /* Si quieres que el texto sea más pequeño en pantallas pequeñas */
+    .accordion-button-sm {
+        font-size: 0.875rem; /* Botón más pequeño */
+      }
+/* ============================ 
+   MENÚ Y VISTAS RESPONSIVAS
+   ============================ */
+
+/* Menú de navegación para móviles */
+.navbar-mobile {
+    display: flex;
+}
+
+/* Menú de navegación para escritorio */
+.navbar-desktop {
+    display: none;
+}
+
+.fondoDesenfoque{
+    backdrop-filter: blur(5px); background: rgba(209, 231, 255, 0.2); backdrop-filter: blur(8px);
+}
+
+.borderBottom{
+    border-bottom: 0.2px solid #D1E7FF;
+}
+
+.borderEnd{
+    border-right: 0.2px solid #D1E7FF;
+}
+
+.borderTop{
+    border-top: 0.2px solid #D1E7FF;
+}
+
+.navbar-nav .nav-link.active, .navbar-nav .nav-link.show{
+    color: #D1E7FF;
+}
+
+.navbar-nav .nav-link:hover {
+    color: #D1E7FF;
+}
+
+/*Cambio a minusculas*/
+.text-capitalize-fix {
+  text-transform: lowercase;
+}
+.text-capitalize-fix::first-letter {
+  text-transform: uppercase;
+}
+
+/* Cambio de visibilidad según el tamaño de pantalla */
+@media (min-width: 992px) {
+    /* Escritorio */
+    .navbar-mobile {
+        display: none;
+    }
+
+    .navbar-desktop {
+        display: flex;
+    }
+}
+
+
+body {
+    font-family: 'Lato', sans-serif;
+    font-weight: 300; /* Regular por defecto */
+}
+
+
+
+.backgroundUno{ background-color: rgb(16, 44, 85);}
+.backgroundDos{background-color: #D1E7FF;}
+.backgroundTres{background-color: #F0F7FF;}
+.backgroundCuatro{background-color: #12438B;}
+.backgroundCinco{background-color: rgba(0, 88, 255, 0.75);}
+.backgroundSeis{background-color: #9CC9FF;}
+.backgroundSiete{background-color: rgba(156, 201, 255, 0.75);}
+.backgroundOcho{background-color: rgba(126, 176, 216, 0.804);}
+.backgroundNueve{background-color: #F7F7F7;}
+.backgroundDiez{background-color: #FAFAFA;}
+.backgroundOnce{background-color:#00A019;}
+.backgroundDoce{ background-color: rgb(9, 26, 52);}
+.backgroundTrece{ background-color:#f8f9fa;}
+.backgroundCatorce{ background-color:#102C55;}
+.backgroundQuience{ background-color:#ffffff;}
+
+
+.colorUno{color:#102C55 ;}
+.colorDos{color: #454545;}
+.colorTres{color: #0058FF;}
+.colorCuatro{color: #D1E7FF;}
+.colorCinco{color: #a4bcdd;}
+.colorSeis{color:#0275DE;}
+.colorSiete{color:#707070;}
+.colorOcho{color:#00A019;}
+
+
+.borderUno{border: solid 1px #93C4FC}
+.borderOcho{border: solid 8px #F0F7FF;}
+.borderTopUno {
+    border-top: 1px solid #93C4FC !important;
+}
+.borderDos{border: #e41c1c;}
+
+
+
+
+/*Botones*/
+.btnEstiloUho{
+    border-radius: 999px;
+    background-color: #ffffff !important; /* Color original */
+    border-color: #ffffff;
+    color: #102C55;
+}
+
+.btnEstiloUho:hover {
+    background-color: #12438B !important; /* Nuevo color en hover */
+    border-color: #12438B !important;
+    color: #D1E7FF;
+}
+
+/*Breadcrumb*/
+.breadcrumb-item + .breadcrumb-item::before {
+    content: "|";
+    padding: 0.25 0.25rem;
+    color: #6c757d; /* Color opcional */
+  }
+
+  .breadcrumb a {
+    color: #12438B;
+    text-decoration: none;
+  }
+  
+  .breadcrumb a:hover {
+    text-decoration: underline;
+    color: #0056b3;
+  }
+
+.breadcrumb-scroll {
+  overflow-x: auto;
+  white-space: nowrap;
+  padding: 0.5rem 0;
+  background-color: #f8f9fa;
+  border-radius: 0.375rem;
+}
+
+.breadcrumb {
+  flex-wrap: nowrap !important;
+}
+
+.breadcrumb-item {
+  max-width: 250px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.breadcrumb-item a {
+  text-decoration: none;
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.badge-nuevo {
+    position: absolute;
+    top: 5px;  /* Le damos un poquito más de espacio */
+    right: 0px; /* Y también del lado derecho */
+    background: #2059D5;  /* Blanco se ve mejor en azul */
+    color: white;     /* Color azul del fondo */
+    padding: 5px 20px;  /* Más padding para que se vea mejor */
+    border-radius: 20px 0 0 20px; /* Más redondeado como en la imagen */
+    font-size: 1.2rem;
+    font-weight: bold;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15); /* Sombrita para que resalte */
+}
+
+.btn-editar {
+    --bs-btn-hover-color: #fff;        /* color del texto */
+    --bs-btn-hover-bg: #0058FF;        /* fondo rojo */
+    --bs-btn-hover-border-color: #0058FF; /* borde rojo */
+}
+.btn-editar_dos {
+    --bs-btn-hover-color: white;        /* color del texto */
+    --bs-btn-hover-bg: #0058FF;        /* fondo rojo */
+    --bs-btn-hover-border-color: #0058FF; /* borde rojo */
+}
+.btn-editar_dos a {
+    text-decoration: none; /* quita subrayado siempre */
+}
+
+/* Solo en hover del botón, cambiar el color del link */
+.btn-editar_dos:hover a {
+    color: white !important; /* color del texto solo al pasar el mouse */
+}

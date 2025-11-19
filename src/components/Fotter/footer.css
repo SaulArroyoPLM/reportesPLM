@@ -1,0 +1,19 @@
+.estiloFooter {
+    
+    background-color: rgb(16, 44, 85);
+}
+.logo-footer {
+    width: 100%;
+    filter: brightness(0) invert(1);
+}
+
+@media (min-width: 768px) {
+    .estiloFooter {   
+ background-color: #f0f0f0;
+    }
+    .logo-footer {
+        width: 25%;
+        filter: none;
+    }
+
+}
