@@ -71,7 +71,6 @@ const handleFileChange = (e) => {
                 ctx.drawImage(img, 0, 0, width, height);
                 
                 // Convertir a base64 con menor calidad
-                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
                 
                 setFormData(prev => ({
                     ...prev,
