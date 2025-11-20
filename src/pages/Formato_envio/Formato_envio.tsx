@@ -42,13 +42,12 @@ const handleFileChange = (e) => {
     if (file) {
         const reader = new FileReader();
         reader.onloadend = () => {
-            // Crear un canvas para reducir el tamaño
             const img = new Image();
             img.onload = () => {
                 const canvas = document.createElement('canvas');
-                const MAX_WIDTH = 800; // Reducir tamaño
-                const MAX_HEIGHT = 600;
-                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.5); // 50% calidad
+                // 👇 REDUCE MÁS EL TAMAÑO
+                const MAX_WIDTH = 300;  // Antes: 800
+                const MAX_HEIGHT = 200; // Antes: 600
                 
                 let width = img.width;
                 let height = img.height;
@@ -70,7 +69,8 @@ const handleFileChange = (e) => {
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
                 
-                // Convertir a base64 con menor calidad
+                // 👇 REDUCE MÁS LA CALIDAD
+                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.3); // Antes: 0.7
                 
                 setFormData(prev => ({
                     ...prev,
