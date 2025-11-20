@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Container, Row, Col, Form, Button, Card, Alert, Spinner } from 'react-bootstrap';
-import Upgrade from "../../img/iconos_menu/upgrade_24dps.svg";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faUpload, faCheckCircle, faTimes, faDownload } from "@fortawesome/free-solid-svg-icons";
 
 function FormatoEnvio() {
     const [formData, setFormData] = useState({
@@ -15,39 +16,40 @@ function FormatoEnvio() {
         fechasPropuestas: '',
         numeroEnvios: '',
         correosClientes: '',
-        miniatura: null
+        miniatura: null as string | null
     });
 
     const [dragActive, setDragActive] = useState(false);
-    const [loading, setLoading] = useState(false); // 👈 Para mostrar loading
-    const [mensaje, setMensaje] = useState({ tipo: '', texto: '' }); // 👈 Para mensajes
+    const [loading, setLoading] = useState(false); 
+    const [loadingPDF, setLoadingPDF] = useState(false);
+    const [mensaje, setMensaje] = useState({ tipo: '', texto: '' }); 
 
     // URL del webhook de Make (reemplaza con la tuya)
    const MAKE_WEBHOOK_URL = 'https://hook.us2.make.com/ohn9salf7uf6pxqpsuy31bpd47rslzcx';
 
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
-    };
+   const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+        ...prev,
+        [name]: value
+    }));
+};
 
-    const handleFileChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            // Convertir imagen a base64
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setFormData(prev => ({
-                    ...prev,
-                    miniatura: reader.result // Base64 de la imagen
-                }));
-            };
-            reader.readAsDataURL(file);
-        }
-    };
+
+const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setFormData(prev => ({
+                ...prev,
+                miniatura: reader.result as string
+            }));
+        };
+        reader.readAsDataURL(file);
+    }
+};
 
     const handleDrag = (e) => {
         e.preventDefault();
@@ -70,12 +72,169 @@ function FormatoEnvio() {
             reader.onloadend = () => {
                 setFormData(prev => ({
                     ...prev,
-                    miniatura: reader.result
+                    miniatura: reader.result as string
                 }));
             };
             reader.readAsDataURL(file);
         }
     };
+    const handleRemoveImage = (e) => {
+        e.stopPropagation();
+        setFormData(prev => ({
+            ...prev,
+            miniatura: null
+        }));
+    };
+
+    const handleDownloadPDF = async () => {
+        setLoadingPDF(true);
+        
+        try {
+            // Importar jsPDF dinámicamente
+            const jsPDF = (await import('jspdf')).default;
+            
+            const doc = new jsPDF();
+            const pageWidth = doc.internal.pageSize.getWidth();
+            let yPos = 20;
+
+            // Título principal
+            doc.setFontSize(18);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Formato para envío de mailing', pageWidth / 2, yPos, { align: 'center' });
+            
+            yPos += 10;
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Fecha: ${new Date().toLocaleDateString('es-MX')}`, pageWidth / 2, yPos, { align: 'center' });
+            
+            yPos += 15;
+
+            // Información de la campaña
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(0, 102, 204); // Azul
+            doc.text('Información de la campaña', 20, yPos);
+            yPos += 8;
+
+            doc.setFontSize(10);
+            doc.setTextColor(0, 0, 0);
+            doc.setFont('helvetica', 'normal');
+
+            const addField = (label, value) => {
+                if (yPos > 270) {
+                    doc.addPage();
+                    yPos = 20;
+                }
+                doc.setFont('helvetica', 'bold');
+                doc.text(`${label}:`, 20, yPos);
+                doc.setFont('helvetica', 'normal');
+                doc.text(value || 'No especificado', 70, yPos);
+                yPos += 7;
+            };
+
+            addField('Aplicación/Campaña', formData.aplicacion);
+            addField('Laboratorio/cliente', formData.laboratorio);
+            addField('Ruta arte', formData.rutaArte);
+            addField('Segmento a dirigir', formData.segmento);
+            addField('Periodicidad', formData.periodicidad);
+
+            // Imagen miniatura
+            if (formData.miniatura) {
+                yPos += 5;
+                doc.setFont('helvetica', 'bold');
+                doc.text('Miniatura:', 20, yPos);
+                yPos += 5;
+                
+                try {
+                    const imgWidth = 80;
+                    const imgHeight = 60;
+                    doc.addImage(formData.miniatura, 'JPEG', 20, yPos, imgWidth, imgHeight);
+                    yPos += imgHeight + 10;
+                } catch (e) {
+                    doc.setFont('helvetica', 'normal');
+                    doc.text('Imagen incluida (ver archivo original)', 20, yPos);
+                    yPos += 7;
+                }
+            }
+
+            // Contenido del mailing
+            yPos += 5;
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(0, 102, 204);
+            doc.text('Contenido del mailing', 20, yPos);
+            yPos += 8;
+
+            doc.setFontSize(10);
+            doc.setTextColor(0, 0, 0);
+            doc.setFont('helvetica', 'normal');
+
+            // Subject (con texto largo)
+            doc.setFont('helvetica', 'bold');
+            doc.text('Subject:', 20, yPos);
+            yPos += 5;
+            doc.setFont('helvetica', 'normal');
+            const subjectLines = doc.splitTextToSize(formData.subject || 'No especificado', 170);
+            doc.text(subjectLines, 20, yPos);
+            yPos += (subjectLines.length * 5) + 5;
+
+            // Call to action
+            doc.setFont('helvetica', 'bold');
+            doc.text('Call to action:', 20, yPos);
+            yPos += 5;
+            doc.setFont('helvetica', 'normal');
+            const ctaLines = doc.splitTextToSize(formData.callToAction || 'No especificado', 170);
+            doc.text(ctaLines, 20, yPos);
+            yPos += (ctaLines.length * 5) + 5;
+
+            // Comentarios
+            doc.setFont('helvetica', 'bold');
+            doc.text('Comentarios adicionales:', 20, yPos);
+            yPos += 5;
+            doc.setFont('helvetica', 'normal');
+            const comentariosLines = doc.splitTextToSize(formData.comentarios || 'No especificado', 170);
+            doc.text(comentariosLines, 20, yPos);
+            yPos += (comentariosLines.length * 5) + 10;
+
+            // Parámetros de envío
+            if (yPos > 240) {
+                doc.addPage();
+                yPos = 20;
+            }
+
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(0, 102, 204);
+            doc.text('Parámetros de envío', 20, yPos);
+            yPos += 8;
+
+            doc.setFontSize(10);
+            doc.setTextColor(0, 0, 0);
+            doc.setFont('helvetica', 'normal');
+
+            addField('Fechas propuestas', formData.fechasPropuestas);
+            addField('Número de envíos', formData.numeroEnvios);
+            addField('Correos de clientes', formData.correosClientes);
+
+            // Guardar PDF
+            doc.save(`formato_mailing_${new Date().getTime()}.pdf`);
+            
+            setMensaje({ 
+                tipo: 'success', 
+                texto: '✅ PDF descargado exitosamente' 
+            });
+        } catch (error) {
+            console.error('Error al generar PDF:', error);
+            setMensaje({ 
+                tipo: 'danger', 
+                texto: '❌ Error al generar el PDF' 
+            });
+        } finally {
+            setLoadingPDF(false);
+        }
+    };
+
+
 
     // 🔥 FUNCIÓN PARA ENVIAR A MAKE
     const handleSubmit = async (e) => {
@@ -260,33 +419,86 @@ function FormatoEnvio() {
                     </Col>
 
                     <Col md={6}>
-                        <Form.Label>Miniatura de imagen</Form.Label>
+                        <Form.Label className="mb-2">Miniatura de imagen</Form.Label>
                         <Card 
-                            className={`text-center p-4 ${dragActive ? 'border-primary' : ''}`}
+                            className={`text-center p-4 ${dragActive ? 'border-primary bg-light' : ''}`}
                             style={{ 
-                                cursor: 'pointer',
-                                border: dragActive ? '2px dashed #0d6efd' : '2px dashed #dee2e6'
+                                cursor: formData.miniatura ? 'default' : 'pointer',
+                                border: dragActive ? '2px dashed #0d6efd' : '2px dashed #dee2e6',
+                                minHeight: '300px',
+                                transition: 'all 0.3s ease'
                             }}
                             onDragEnter={handleDrag}
                             onDragLeave={handleDrag}
                             onDragOver={handleDrag}
                             onDrop={handleDrop}
-                            onClick={() => document.getElementById('fileInput').click()}
+                            onClick={() => {
+                                if (!formData.miniatura) {
+                                    const fileInput = document.getElementById('fileInput') as HTMLInputElement;
+                                    fileInput?.click();
+                                }
+                            }}
                         >
-                            <Card.Body className="d-flex flex-column justify-content-center align-items-center">
-                                <Card.Img 
-                                    className="logo_upgrade mb-3" 
-                                    src={Upgrade} 
-                                    alt="Logo Upgrade"
-                                    style={{ width: '80px', height: '80px' }}
-                                />
-                                <Card.Text>
-                                    Arrastra y suelta aquí el archivo<br />
-                                    del mailing o haz clic para subirlo
-                                </Card.Text>
-                                {formData.miniatura && (
-                                    <div className="mt-3 text-success">
-                                        ✅ <strong>Imagen cargada correctamente</strong>
+                            <Card.Body className="d-flex flex-column justify-content-center align-items-center h-100">
+                                {formData.miniatura ? (
+                                    // PREVIEW DE LA IMAGEN
+                                    <div className="position-relative w-100 h-100 d-flex flex-column align-items-center justify-content-center">
+                                        <div className="position-relative">
+                                            <img 
+                                                src={formData.miniatura} 
+                                                alt="Preview" 
+                                                className="img-fluid"
+                                                style={{ 
+                                                    maxWidth: '100%', 
+                                                    maxHeight: '240px', 
+                                                    objectFit: 'contain',
+                                                    borderRadius: '8px'
+                                                }}
+                                            />
+                                            <Button
+                                                variant="danger"
+                                                size="sm"
+                                                className="position-absolute rounded-circle"
+                                                style={{
+                                                    top: '-8px',
+                                                    right: '-8px',
+                                                    width: '32px',
+                                                    height: '32px',
+                                                    padding: 0,
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center'
+                                                }}
+                                                onClick={handleRemoveImage}
+                                            >
+                                                <FontAwesomeIcon icon={faTimes} size="sm" />
+                                            </Button>
+                                        </div>
+                                        <div className="mt-4 d-flex align-items-center gap-2 text-success fw-semibold">
+                                            <FontAwesomeIcon icon={faCheckCircle} />
+                                            <span>Imagen cargada correctamente</span>
+                                        </div>
+                                        <p className="text-muted small mt-2 mb-0">
+                                            Haz clic en la X para cambiar la imagen
+                                        </p>
+                                    </div>
+                                ) : (
+                                    // ZONA DE SUBIDA
+                                    <div className="d-flex flex-column align-items-center justify-content-center h-100 py-4">
+                                        <FontAwesomeIcon 
+                                            icon={faUpload} 
+                                            className="text-primary mb-3"
+                                            style={{ width: '60px', height: '60px' }}
+                                        />
+                                        <p className="text-dark fw-semibold mb-1">
+                                            Arrastra y suelta aquí el archivo
+                                        </p>
+                                        <p className="text-secondary mb-2">
+                                            del mailing o haz clic para subirlo
+                                        </p>
+                                        <p className="text-muted small mt-2 mb-0">
+                                            Formatos: JPG, PNG, GIF
+                                        </p>
                                     </div>
                                 )}
                             </Card.Body>
@@ -397,6 +609,23 @@ function FormatoEnvio() {
                         <Button variant="outline-secondary" onClick={handleCancel} disabled={loading}>
                             Cancelar
                         </Button>
+                        <Button 
+    variant="outline-primary" 
+    onClick={handleDownloadPDF} 
+    disabled={loading || loadingPDF}
+>
+    {loadingPDF ? (
+        <>
+            <Spinner size="sm" className="me-2" />
+            Generando PDF...
+        </>
+    ) : (
+        <>
+            <FontAwesomeIcon icon={faDownload} className="me-2" />
+            Descargar PDF
+        </>
+    )}
+</Button>
                         <Button variant="primary" type="submit" disabled={loading}>
                             {loading ? (
                                 <>
@@ -407,6 +636,7 @@ function FormatoEnvio() {
                                 'Guardar'
                             )}
                         </Button>
+
                     </Col>
                 </Row>
             </Form>
