@@ -48,6 +48,7 @@ const handleFileChange = (e) => {
                 const canvas = document.createElement('canvas');
                 const MAX_WIDTH = 800; // Reducir tamaño
                 const MAX_HEIGHT = 600;
+                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.5); // 50% calidad
                 
                 let width = img.width;
                 let height = img.height;
