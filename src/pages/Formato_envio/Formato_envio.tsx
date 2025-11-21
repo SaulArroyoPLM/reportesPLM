@@ -104,12 +104,14 @@ const handleFileChange = (e) => {
             reader.onloadend = () => {
                 setFormData(prev => ({
                     ...prev,
-                    miniatura: reader.result as string
+                    miniatura: reader.result
                 }));
             };
             reader.readAsDataURL(file);
         }
     };
+
+
     const handleRemoveImage = (e) => {
         e.stopPropagation();
         setFormData(prev => ({
@@ -118,164 +120,211 @@ const handleFileChange = (e) => {
         }));
     };
 
-    const handleDownloadPDF = async () => {
-        setLoadingPDF(true);
+  const handleDownloadPDF = async () => {
+    setLoadingPDF(true);
+    
+    try {
+        const html2pdf = (await import('html2pdf.js')).default;
+
+        // Usa la fecha real, no la quemada
+        const fechaActual = new Date().toLocaleDateString('es-MX', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        }).replace(/\//g, '/');
         
-        try {
-            // Importar jsPDF dinámicamente
-            const jsPDF = (await import('jspdf')).default;
+        // 👇 AQUÍ PEGAS TU BASE64 DE LA PLANTILLA
+        const plantillaBase64 = "data:image/png;base64,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AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADc0v8EGAAyBP5Vev7kbQAAAABJRU5ErkJggg==";
+
+        const contenidoHTML = `
+<style>
+    .celda-larga {
+        word-wrap: break-word !important;
+        word-break: break-all !important;
+        overflow-wrap: anywhere !important;
+        hyphens: auto;
+    }
+    table { 
+        table-layout: fixed; 
+        width: 100%; 
+        position: relative;
+        z-index: 2;
+    }
+    td { vertical-align: top; }
+    .plantilla-fondo {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+    }
+     .contenido-wrapper {
+        width: 210mm;
+        min-height: 297mm;
+        max-height: 297mm;   /* 👈 evita que crezca */
+        overflow: hidden;    /* 👈 evita salto de página */
+    }
+    table, tr, td, img, div {
+        page-break-inside: avoid !important; /* 👈 evita cortes */
+    }
+</style>
+<div class="contenido-wrapper" style="width: 210mm; min-height: 285mm;">
+    <!-- IMAGEN DE FONDO (Tu plantilla con el logo) -->
+    <img src="${plantillaBase64}" class="plantilla-fondo" alt="Plantilla" />
+    
+    <!-- CONTENIDO QUE SE ESCRIBE ENCIMA -->
+    <div style="position: relative; z-index: 2; padding: 20px; padding-top: 100px;">
+        
+        <!-- Fecha (si quieres que aparezca, ajusta la posición) -->
+        <div style="text-align: right; margin-bottom: 20px;">
+            <strong>Fecha:</strong> 21/Nov/2025
+        </div>
+
+        <!-- Título -->
+        <div style="color: #3f3f3f; padding: 12px; text-align: center; font-weight: bold; font-size: 14px; margin-bottom: 20px;">
+            FORMATO PARA ENVÍO DE EMAILING
+        </div>
+
+        <!-- Tabla de campos -->
+        <table style="border-collapse: collapse; border: 1px solid #2c3e50;">
+            <tr>
+                <td style="color: #3f3f3f; padding: 8px; border: 1px solid #2c3e50; width: 35%; font-size: 11px;">
+                    Aplicación/ Campaña
+                </td>
+                <td class="celda-larga" style="background: white; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
+                    ${formData.aplicacion || ''}
+                </td>
+            </tr>
             
-            const doc = new jsPDF();
-            const pageWidth = doc.internal.pageSize.getWidth();
-            let yPos = 20;
-
-            // Título principal
-            doc.setFontSize(18);
-            doc.setFont('helvetica', 'bold');
-            doc.text('Formato para envío de mailing', pageWidth / 2, yPos, { align: 'center' });
+            <tr>
+                <td style="color: #3f3f3f; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
+                    Laboratorio/cliente:
+                </td>
+                <td class="celda-larga" style="background: white; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
+                    ${formData.laboratorio || ''}
+                </td>
+            </tr>
             
-            yPos += 10;
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'normal');
-            doc.text(`Fecha: ${new Date().toLocaleDateString('es-MX')}`, pageWidth / 2, yPos, { align: 'center' });
+            <tr>
+                <td style="color: #3f3f3f; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
+                    Ruta arte:
+                </td>
+                <td class="celda-larga" style="background: white; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
+                    ${formData.rutaArte || ''}
+                </td>
+            </tr>
             
-            yPos += 15;
-
-            // Información de la campaña
-            doc.setFontSize(14);
-            doc.setFont('helvetica', 'bold');
-            doc.setTextColor(0, 102, 204); // Azul
-            doc.text('Información de la campaña', 20, yPos);
-            yPos += 8;
-
-            doc.setFontSize(10);
-            doc.setTextColor(0, 0, 0);
-            doc.setFont('helvetica', 'normal');
-
-            const addField = (label, value) => {
-                if (yPos > 270) {
-                    doc.addPage();
-                    yPos = 20;
-                }
-                doc.setFont('helvetica', 'bold');
-                doc.text(`${label}:`, 20, yPos);
-                doc.setFont('helvetica', 'normal');
-                doc.text(value || 'No especificado', 70, yPos);
-                yPos += 7;
-            };
-
-            addField('Aplicación/Campaña', formData.aplicacion);
-            addField('Laboratorio/cliente', formData.laboratorio);
-            addField('Ruta arte', formData.rutaArte);
-            addField('Segmento a dirigir', formData.segmento);
-            addField('Periodicidad', formData.periodicidad);
-
-            // Imagen miniatura
-            if (formData.miniatura) {
-                yPos += 5;
-                doc.setFont('helvetica', 'bold');
-                doc.text('Miniatura:', 20, yPos);
-                yPos += 5;
-                
-                try {
-                    const imgWidth = 80;
-                    const imgHeight = 60;
-                    doc.addImage(formData.miniatura, 'JPEG', 20, yPos, imgWidth, imgHeight);
-                    yPos += imgHeight + 10;
-                } catch (e) {
-                    doc.setFont('helvetica', 'normal');
-                    doc.text('Imagen incluida (ver archivo original)', 20, yPos);
-                    yPos += 7;
-                }
-            }
-
-            // Contenido del mailing
-            yPos += 5;
-            doc.setFontSize(14);
-            doc.setFont('helvetica', 'bold');
-            doc.setTextColor(0, 102, 204);
-            doc.text('Contenido del mailing', 20, yPos);
-            yPos += 8;
-
-            doc.setFontSize(10);
-            doc.setTextColor(0, 0, 0);
-            doc.setFont('helvetica', 'normal');
-
-            // Subject (con texto largo)
-            doc.setFont('helvetica', 'bold');
-            doc.text('Subject:', 20, yPos);
-            yPos += 5;
-            doc.setFont('helvetica', 'normal');
-            const subjectLines = doc.splitTextToSize(formData.subject || 'No especificado', 170);
-            doc.text(subjectLines, 20, yPos);
-            yPos += (subjectLines.length * 5) + 5;
-
-            // Call to action
-            doc.setFont('helvetica', 'bold');
-            doc.text('Call to action:', 20, yPos);
-            yPos += 5;
-            doc.setFont('helvetica', 'normal');
-            const ctaLines = doc.splitTextToSize(formData.callToAction || 'No especificado', 170);
-            doc.text(ctaLines, 20, yPos);
-            yPos += (ctaLines.length * 5) + 5;
-
-            // Comentarios
-            doc.setFont('helvetica', 'bold');
-            doc.text('Comentarios adicionales:', 20, yPos);
-            yPos += 5;
-            doc.setFont('helvetica', 'normal');
-            const comentariosLines = doc.splitTextToSize(formData.comentarios || 'No especificado', 170);
-            doc.text(comentariosLines, 20, yPos);
-            yPos += (comentariosLines.length * 5) + 10;
-
-            // Parámetros de envío
-            if (yPos > 240) {
-                doc.addPage();
-                yPos = 20;
-            }
-
-            doc.setFontSize(14);
-            doc.setFont('helvetica', 'bold');
-            doc.setTextColor(0, 102, 204);
-            doc.text('Parámetros de envío', 20, yPos);
-            yPos += 8;
-
-            doc.setFontSize(10);
-            doc.setTextColor(0, 0, 0);
-            doc.setFont('helvetica', 'normal');
-
-            addField('Fechas propuestas', formData.fechasPropuestas);
-            addField('Número de envíos', formData.numeroEnvios);
-            addField('Correos de clientes', formData.correosClientes);
-
-            // Guardar PDF
-            doc.save(`formato_mailing_${new Date().getTime()}.pdf`);
+            <tr>
+                <td style="color: #3f3f3f; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
+                    Segmento a dirigir:
+                </td>
+                <td class="celda-larga" style="background: white; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
+                    ${formData.segmento || ''}
+                </td>
+            </tr>
             
-            setMensaje({ 
-                tipo: 'success', 
-                texto: '✅ PDF descargado exitosamente' 
-            });
-        } catch (error) {
-            console.error('Error al generar PDF:', error);
-            setMensaje({ 
-                tipo: 'danger', 
-                texto: '❌ Error al generar el PDF' 
-            });
-        } finally {
-            setLoadingPDF(false);
-        }
-    };
+            <tr>
+                <td style="color: #3f3f3f; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
+                    Periodicidad:
+                </td>
+                <td class="celda-larga" style="background: white; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
+                    ${formData.periodicidad || ''}
+                </td>
+            </tr>
+            
+            <tr>
+                <td style="color: #3f3f3f; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
+                    Subject:
+                </td>
+                <td class="celda-larga" style="background: white; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
+                    ${formData.subject || ''}
+                </td>
+            </tr>
+            
+            <tr>
+                <td style="color: #3f3f3f; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
+                    Call to action:
+                </td>
+                <td class="celda-larga" style="background: white; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
+                    ${formData.callToAction || ''}
+                </td>
+            </tr>
+            
+            <tr>
+                <td style="color: #3f3f3f; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
+                    Número de envíos<br>/ fechas propuestas:
+                </td>
+                <td class="celda-larga" style="background: white; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
+                    ${formData.numeroEnvios || ''} ${formData.fechasPropuestas ? '/ ' + formData.fechasPropuestas : ''}
+                </td>
+            </tr>
+            
+            <tr>
+                <td style="color: #3f3f3f; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
+                    Correos clientes:
+                </td>
+                <td class="celda-larga" style="background: white; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
+                    ${formData.correosClientes || ''}
+                </td>
+            </tr>
+            
+            <tr>
+                <td style="color: #3f3f3f; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
+                    Comentarios<br>adicionales
+                </td>
+                <td class="celda-larga" style="background: white; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
+                    ${formData.comentarios || ''}
+                </td>
+            </tr>
+            
+            <tr>
+                <td style="color: #3f3f3f; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
+                    Miniatura de imagen:
+                </td>
+                <td class="celda-larga" style="background: white; padding: 8px; border: 1px solid #2c3e50;">
+                    ${formData.miniatura ? `<img src="${formData.miniatura}" style="max-width: 200px; max-height: 150px; display: block;" />` : ''}
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+`;
+
+        const element = document.createElement('div');
+element.innerHTML = contenidoHTML;
+document.body.appendChild(element);
+
+        const opt = {
+    margin: 0,
+    filename: `formato_mailing_${Date.now()}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true, logging: false },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+};
+
+        // Esto genera SOLO UNA HOJA
+        await html2pdf().set(opt).from(contenidoHTML).save();
+        document.body.removeChild(element);
 
 
+    } catch (error) {
+        console.error('Error PDF:', error);
+        setMensaje({ tipo: 'danger', texto: 'Error al generar el PDF' });
+    } finally {
+        setLoadingPDF(false);
+    }
+
+        
+};
 
     // 🔥 FUNCIÓN PARA ENVIAR A MAKE
-    const handleSubmit = async (e) => {
+     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         setMensaje({ tipo: '', texto: '' });
 
         try {
-            // Preparar datos para enviar
             const dataParaMake = {
                 fecha: new Date().toISOString(),
                 aplicacion: formData.aplicacion,
@@ -289,10 +338,9 @@ const handleFileChange = (e) => {
                 fechasPropuestas: formData.fechasPropuestas,
                 numeroEnvios: formData.numeroEnvios,
                 correosClientes: formData.correosClientes,
-                miniatura: formData.miniatura // Base64 de la imagen
+                miniatura: formData.miniatura
             };
 
-            // Enviar a Make
             const response = await fetch(MAKE_WEBHOOK_URL, {
                 method: 'POST',
                 headers: {
@@ -306,7 +354,7 @@ const handleFileChange = (e) => {
                     tipo: 'success', 
                     texto: '✅ Formato guardado exitosamente en Google Sheets' 
                 });
-                handleCancel(); // Limpiar formulario
+                handleCancel();
             } else {
                 setMensaje({ 
                     tipo: 'danger', 
@@ -361,12 +409,7 @@ const handleFileChange = (e) => {
                 </Col>
             </Row>
 
-            {/* 👇 Mostrar mensajes de éxito o error */}
-            {mensaje.texto && (
-                <Alert variant={mensaje.tipo} dismissible onClose={() => setMensaje({ tipo: '', texto: '' })}>
-                    {mensaje.texto}
-                </Alert>
-            )}
+
 
             <Form onSubmit={handleSubmit}>
                 <Row className="mt-4">
