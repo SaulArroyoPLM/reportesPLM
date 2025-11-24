@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react";
 import { Container, Row, Col, Form, Button, Card, Alert, Spinner, Table } from 'react-bootstrap';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import './formato_reporte.css';
 import { faUpload, faCheckCircle, faTimes, faDownload, faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
 import {
     Chart as ChartJS,
@@ -15,7 +16,6 @@ import {
     Tooltip,
     Legend
 } from 'chart.js';
-
 // Registrar componentes de Chart.js
 ChartJS.register(
     CategoryScale,
@@ -900,6 +900,11 @@ function FormatoReporte() {
                     </div>
                 </Col>
             </Row>
+            <Row className="mt-4">
+                    <Col>
+                        <h5 className="titulo_formato_reporte text-primary mb-3">Inicio</h5>
+                    </Col>
+                </Row>
             <Row className="mb-4" >
                             <Col sm={12}>
                                 <Form.Group className="mb-3">
@@ -923,11 +928,7 @@ function FormatoReporte() {
 
             <Form onSubmit={handleSubmit}>
                 {/* Sección: Inicio */}
-                <Row className="mt-4">
-                    <Col>
-                        <h5 className="text-primary mb-3">Inicio</h5>
-                    </Col>
-                </Row>
+                
 
                 <Row>
                     <Col md={6}>
@@ -1091,7 +1092,7 @@ function FormatoReporte() {
 
                 {/* Sección: Métricas */}
                 <div className="mt-5 mb-4">
-                    <h5 className="text-primary mb-3">Métricas</h5>
+                    <h5 className=" titulo_formato_reporte text-primary mb-3">Métricas</h5>
                     <Row>
                         <Col md={3}>
                             <Form.Group className="mb-3">
@@ -1145,9 +1146,12 @@ function FormatoReporte() {
                 </div>
 
                 {/* Sección: Segmentos (Tabla) */}
+
                 <div className="mt-5 mb-4">
-                    <div className="d-flex justify-content-between align-items-center mb-3">
-                        <h5 className="text-primary mb-0">Segmentos</h5>
+                <h5 className="titulo_formato_reporte text-primary mb-0">Segmentos</h5>
+
+                    <div className="d-flex justify-content-end align-items-center m-3">
+                       
                         <Button 
                             variant="success" 
                             size="sm"
@@ -1265,7 +1269,7 @@ function FormatoReporte() {
 
                 {/* Segmentos enviados */}
                 <div className="mt-4 mb-4">
-                    <h5 className="text-primary mb-3">Segmentos enviados</h5>
+                    <h5 className=" titulo_formato_reporte text-primary mb-3">Segmentos enviados</h5>
                     <Form.Group>
                         <Form.Control
                             as="textarea"
