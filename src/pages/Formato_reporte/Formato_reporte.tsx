@@ -1,16 +1,44 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react";
 import { Container, Row, Col, Form, Button, Card, Alert, Spinner, Table } from 'react-bootstrap';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUpload, faCheckCircle, faTimes, faDownload, faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    BarController,
+    LineElement,
+    PointElement,
+    ArcElement,
+    Title,
+    Tooltip,
+    Legend
+} from 'chart.js';
+
+// Registrar componentes de Chart.js
+ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    BarController,
+    LineElement,
+    PointElement,
+    ArcElement,
+    Title,
+    Tooltip,
+    Legend
+);
 
 function FormatoReporte() {
     const [formData, setFormData] = useState({
         detalleCampana: '',
         nombreCampana: '',
+        periodo: '',
         ultimoEnvio: '',
         correosEnviados: '',
         subject: '',
-        miniatura: null
+        miniatura: null as string | null
     });
 
     // Métricas principales
@@ -34,8 +62,133 @@ function FormatoReporte() {
     const [loadingPDF, setLoadingPDF] = useState(false);
     const [mensaje, setMensaje] = useState({ tipo: '', texto: '' });
 
+    // Referencias para las gráficas
+    const chartUsuariosRef = useRef<HTMLCanvasElement | null>(null);
+    const chartInstancesRef = useRef<{ usuarios?: ChartJS | null }>({});
+    
+    // Función para limpiar la gráfica anterior
+    const limpiarGrafica = useCallback(() => {
+        if (chartInstancesRef.current.usuarios) {
+            try {
+                chartInstancesRef.current.usuarios.destroy();
+            } catch (error) {
+                // Ignorar errores al destruir
+            }
+            chartInstancesRef.current.usuarios = null;
+        }
+    }, []);
+    
+    // Función para crear la gráfica
+    const crearGrafica = useCallback((segmentosConDatos: typeof segmentos) => {
+        if (!chartUsuariosRef.current) return;
+        
+        // Limpiar gráfica anterior SIEMPRE antes de crear una nueva
+        limpiarGrafica();
+        
+        // Pequeño delay para asegurar que el canvas esté completamente liberado
+        setTimeout(() => {
+            if (!chartUsuariosRef.current) return;
+            
+            // Verificar que no haya una gráfica existente
+            if (chartInstancesRef.current.usuarios) {
+                limpiarGrafica();
+            }
+            
+            // Preparar datos
+            const labels = segmentosConDatos.map(s => s.especialidad);
+            const usuarios = segmentosConDatos.map(s => parseInt(s.usuarios) || 0);
+            
+            // Obtener contexto
+            const ctx = chartUsuariosRef.current.getContext('2d');
+            if (!ctx) return;
+            
+            // Crear gráfica
+            try {
+                chartInstancesRef.current.usuarios = new ChartJS(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Usuarios',
+                            data: usuarios,
+                            backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { 
+                                display: true,
+                                position: 'bottom'
+                            },
+                            title: { 
+                                display: true, 
+                                text: 'Segmentos enviados',
+                                font: { size: 14 }
+                            }
+                        },
+                        scales: {
+                            x: { 
+                                beginAtZero: true,
+                                grid: { display: true }
+                            },
+                            y: {
+                                grid: { display: false }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error al crear la gráfica:', error);
+            }
+        }, 10);
+    }, [limpiarGrafica]);
+    
+    // Callback ref para cuando el canvas se monta (solo guarda la referencia)
+    const canvasRefCallback = useCallback((canvas: HTMLCanvasElement | null) => {
+        // Limpiar gráfica si el canvas se desmonta
+        if (!canvas && chartInstancesRef.current.usuarios) {
+            limpiarGrafica();
+        }
+        chartUsuariosRef.current = canvas;
+    }, [limpiarGrafica]);
+
     // URL del webhook de Make (reemplaza con la tuya)
     const MAKE_WEBHOOK_URL = 'https://hook.us2.make.com/TU_WEBHOOK_AQUI_PARA_REPORTE';
+
+    // Función para crear/actualizar gráfica automáticamente cuando cambian los segmentos
+    useEffect(() => {
+        // Filtrar segmentos que tengan al menos especialidad y usuarios
+        const segmentosConDatos = segmentos.filter(s => 
+            s.especialidad && s.especialidad.trim() !== '' && 
+            s.usuarios && s.usuarios.trim() !== '' && 
+            !isNaN(parseInt(s.usuarios))
+        );
+
+        // Si no hay datos, limpiar gráfica si existe
+        if (segmentosConDatos.length === 0) {
+            limpiarGrafica();
+            return;
+        }
+
+        // Si hay datos y el canvas está disponible, crear/actualizar la gráfica
+        // Esperar un momento para asegurar que el DOM esté actualizado
+        const timeoutId = setTimeout(() => {
+            if (chartUsuariosRef.current && segmentosConDatos.length > 0) {
+                crearGrafica(segmentosConDatos);
+            }
+        }, 50);
+
+        // Cleanup: destruir gráfica al desmontar o cuando cambien los datos
+        return () => {
+            clearTimeout(timeoutId);
+            limpiarGrafica();
+        };
+    }, [segmentos, crearGrafica, limpiarGrafica]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -82,7 +235,9 @@ function FormatoReporte() {
                     canvas.width = width;
                     canvas.height = height;
                     const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
+                    if (ctx) {
+                        ctx.drawImage(img, 0, 0, width, height);
+                    }
                     
                     const compressedBase64 = canvas.toDataURL('image/jpeg', 0.3);
                     
@@ -91,7 +246,9 @@ function FormatoReporte() {
                         miniatura: compressedBase64
                     }));
                 };
-                img.src = reader.result;
+                if (reader.result && typeof reader.result === 'string') {
+                    img.src = reader.result;
+                }
             };
             reader.readAsDataURL(file);
         }
@@ -116,10 +273,12 @@ function FormatoReporte() {
             const file = e.dataTransfer.files[0];
             const reader = new FileReader();
             reader.onloadend = () => {
-                setFormData(prev => ({
-                    ...prev,
-                    miniatura: reader.result
-                }));
+                if (reader.result && typeof reader.result === 'string') {
+                    setFormData(prev => ({
+                        ...prev,
+                        miniatura: reader.result as string
+                    }));
+                }
             };
             reader.readAsDataURL(file);
         }
@@ -158,170 +317,495 @@ function FormatoReporte() {
             setSegmentos(prev => prev.filter(seg => seg.id !== id));
         }
     };
-
     const handleDownloadPDF = async () => {
         setLoadingPDF(true);
-        
+    
         try {
-            const jsPDF = (await import('jspdf')).default;
-            await import('jspdf-autotable');
-            
-            const doc = new jsPDF();
-            const pageWidth = doc.internal.pageSize.getWidth();
-            let yPos = 20;
+            const html2pdf = (await import('html2pdf.js')).default;
+              // Usa la fecha real
+              const fechaActual = new Date().toLocaleDateString('es-MX', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            }).replace(/\//g, '/');
 
-            // Título principal
-            doc.setFontSize(18);
-            doc.setFont('helvetica', 'bold');
-            doc.text('Formato para reporte de emailing', pageWidth / 2, yPos, { align: 'center' });
-            
-            yPos += 10;
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'normal');
-            doc.text(`Fecha: ${new Date().toLocaleDateString('es-MX')}`, pageWidth / 2, yPos, { align: 'center' });
-            
-            yPos += 15;
-
-            // Sección: Inicio
-            doc.setFontSize(14);
-            doc.setFont('helvetica', 'bold');
-            doc.setTextColor(0, 102, 204);
-            doc.text('Inicio', 20, yPos);
-            yPos += 8;
-
-            doc.setFontSize(10);
-            doc.setTextColor(0, 0, 0);
-            doc.setFont('helvetica', 'normal');
-
-            const addField = (label, value) => {
-                if (yPos > 270) {
-                    doc.addPage();
-                    yPos = 20;
-                }
-                doc.setFont('helvetica', 'bold');
-                doc.text(`${label}:`, 20, yPos);
-                doc.setFont('helvetica', 'normal');
-                doc.text(value || 'No especificado', 70, yPos);
-                yPos += 7;
-            };
-
-            addField('Detalle de campañas', formData.detalleCampana);
-            addField('Nombre de la campaña', formData.nombreCampana);
-            addField('Último Envío', formData.ultimoEnvio);
-            addField('Correos enviados', formData.correosEnviados);
-
-            // Subject
-            yPos += 3;
-            doc.setFont('helvetica', 'bold');
-            doc.text('Subject:', 20, yPos);
-            yPos += 5;
-            doc.setFont('helvetica', 'normal');
-            const subjectLines = doc.splitTextToSize(formData.subject || 'No especificado', 170);
-            doc.text(subjectLines, 20, yPos);
-            yPos += (subjectLines.length * 5) + 5;
-
-            // Miniatura
-            if (formData.miniatura) {
-                yPos += 5;
-                doc.setFont('helvetica', 'bold');
-                doc.text('Miniatura:', 20, yPos);
-                yPos += 5;
+    // Base64 de la plantilla
+              const plantillaBase64 = "data:image/png;base64,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AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB4KP4RYADr4HEm1aOBXwAAAABJRU5ErkJggg==";
+            // --- 1. Capturar gráfica ---
+            let chartImageBase64 = '';
+            const segmentosConDatos = segmentos.filter(s => 
+                s.especialidad && s.especialidad.trim() !== '' && 
+                s.usuarios && s.usuarios.trim() !== '' && 
+                !isNaN(parseInt(s.usuarios))
+            );
+            if (segmentosConDatos.length > 0 && chartUsuariosRef.current) {
+                await new Promise((resolve) => setTimeout(resolve, 500)); // Más tiempo
                 
                 try {
-                    const imgWidth = 80;
-                    const imgHeight = 60;
-                    doc.addImage(formData.miniatura, 'JPEG', 20, yPos, imgWidth, imgHeight);
-                    yPos += imgHeight + 10;
-                } catch (e) {
-                    doc.setFont('helvetica', 'normal');
-                    doc.text('Imagen incluida (ver archivo original)', 20, yPos);
-                    yPos += 7;
+                    if (chartUsuariosRef.current.width > 0 && chartUsuariosRef.current.height > 0) {
+                        chartImageBase64 = chartUsuariosRef.current.toDataURL("image/png", 1.0);
+                    }
+                } catch (error) {
+                    console.warn("Error capturando gráfica:", error);
                 }
             }
-
-            // Métricas
-            if (yPos > 220) {
-                doc.addPage();
-                yPos = 20;
-            }
-
-            doc.setFontSize(14);
-            doc.setFont('helvetica', 'bold');
-            doc.setTextColor(0, 102, 204);
-            doc.text('Métricas', 20, yPos);
-            yPos += 8;
-
-            doc.setFontSize(10);
-            doc.setTextColor(0, 0, 0);
-
-            addField('Aperturas', metricas.aperturas);
-            addField('%Open', metricas.porcentajeOpen);
-            addField('CTO', metricas.cto);
-            addField('CTR', metricas.ctr);
-
-            // Segmentos - Tabla
-            if (yPos > 180) {
-                doc.addPage();
-                yPos = 20;
-            }
-
-            doc.setFontSize(14);
-            doc.setFont('helvetica', 'bold');
-            doc.setTextColor(0, 102, 204);
-            doc.text('Segmentos', 20, yPos);
-            yPos += 10;
-
-            const tableData = segmentos.map(seg => [
-                seg.especialidad || '-',
-                seg.usuarios || '-',
-                seg.aperturas || '-',
-                seg.porcentajeOpen || '-',
-                seg.clics || '-',
-                seg.ctr || '-'
-            ]);
-
-            doc.autoTable({
-                startY: yPos,
-                head: [['Especialidad', '#Usuarios', '#Aperturas', '%Open', 'Clics', 'CTR']],
-                body: tableData,
-                theme: 'grid',
-                headStyles: { fillColor: [0, 102, 204] },
-                margin: { left: 20, right: 20 }
-            });
-
-            yPos = doc.lastAutoTable.finalY + 10;
-
-            // Segmentos enviados
-            if (yPos > 250) {
-                doc.addPage();
-                yPos = 20;
-            }
-
-            doc.setFontSize(12);
-            doc.setFont('helvetica', 'bold');
-            doc.text('Segmentos enviados:', 20, yPos);
-            yPos += 5;
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'normal');
-            const segEnviadosLines = doc.splitTextToSize(segmentosEnviados || 'No especificado', 170);
-            doc.text(segEnviadosLines, 20, yPos);
-
-            doc.save(`reporte_emailing_${new Date().getTime()}.pdf`);
+    
             
-            setMensaje({ 
-                tipo: 'success', 
-                texto: '✅ PDF descargado exitosamente' 
-            });
+    
+            // --- 2. Generar filas tabla ---
+            const segmentosTableRows = segmentos.map(seg => `
+                <tr>
+                    <td style="padding: 6px; border: 1px solid #ddd; font-size: 11px;">${seg.especialidad || '-'}</td>
+                    <td style="padding: 6px; border: 1px solid #ddd; font-size: 11px; text-align: center;">${seg.usuarios || '-'}</td>
+                    <td style="padding: 6px; border: 1px solid #ddd; font-size: 11px; text-align: center;">${seg.aperturas || '-'}</td>
+                    <td style="padding: 6px; border: 1px solid #ddd; font-size: 11px; text-align: center;">${seg.porcentajeOpen || '-'}</td>
+                    <td style="padding: 6px; border: 1px solid #ddd; font-size: 11px; text-align: center;">${seg.clics || '-'}</td>
+                    <td style="padding: 6px; border: 1px solid #ddd; font-size: 11px; text-align: center;">${seg.ctr || '-'}</td>
+                </tr>
+            `).join('');
+    
+            // --- 3. Tu HTML completo (sin cambios, está perfecto) ---
+            const contenidoHTML = `
+              <style>
+              * { margin: 0; padding: 0; box-sizing: border-box; }
+        body, html { margin: 0; padding: 0; width: 297mm; height: 210mm; }
+                    
+                  .pagina { 
+            position: relative; 
+            width: 297mm; 
+            height: 210mm; 
+            background: white;
+        }
+
+      .fondo-plantilla {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+                    
+                    
+.contenido-real {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      padding: 15mm 12mm;  /* ← márgenes seguros donde va el texto */
+      box-sizing: border-box;
+      z-index: 2;
+      font-family: Arial, sans-serif;
+    }
+                    
+        
+        .header {
+            border-bottom: 2px solid #0066cc;
+            margin-bottom: 8px;
+            padding-bottom:8px;
+        }
+        
+        .header table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        
+        .title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            text-align: right;
+        }
+        
+        .periodo {
+            background-color: #f0f4ff;
+            padding: 6px 12px;
+            margin-bottom: 10px;
+            font-size: 13px;
+            border-left: 4px solid #0066cc;
+            color: #003366;
+        }
+        
+        .main-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .left-column {
+            width: 240px;
+            vertical-align: top;
+            padding-right: 8px;
+        }
+        
+        .right-column {
+            vertical-align: top;
+        }
+        
+        .metric-box {
+            text-align: center;
+            border: 1px solid #0066cc;
+            width: 100%;
+        }
+         .metric-box_blue{
+            border: 1px solid #0066cc;
+            width: 100%;
+            height: 125px;
+            background-color: #D6E8F5;
+            margin-bottom: 6px;
+        }
+        .metric-box_dos{
+            text-align: center;
+            border: 1px solid #0066cc;
+            width: 100%;
+            margin-bottom: 6px;
+        }
+
+        
+        .metric-label {
+            color: #0066cc;
+            font-size: 14px;
+            font-weight: bold;
+            height: 40px;
+            padding: 8px;
+            background: #D6E8F5;
+            width:50%;
+        }
+        
+        .metric-value {
+            color: #0066cc;
+            font-size: 13px;
+            font-weight: bold;
+            text-align:center;
+             width:50%;
+             
+             
+        }
+               .metric-value_dos {
+            color: #0066cc;
+            font-size: 13px;
+            font-weight: bold;
+            text-align:center;
+             width:100%;
+        }
+        
+        .section-title {
+            color: #0066cc;
+            padding: 6px 10px;
+            font-weight: bold;
+            border-bottom: 1px solid #0066cc;;
+            text-align: center;
+            margin-bottom: 6px;
+            font-size: 11px;
+        }
+        .section-title_blue{
+           border: 1px solid #608BC9;
+            color:#3367B8 ;
+            padding: 6px 10px;
+            font-weight: bold;
+            font-size: 11x;
+            text-align: center;
+        }
+        
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+        
+        .info-table td {
+            padding: 6px;
+            border-bottom: 1px solid #ddd;
+            font-size: 10px;
+        }
+        
+        .info-table td:first-child {
+            width: 180px;
+        }
+        
+        .segments-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+        
+        .segments-table th {
+            padding: 5px;
+            border-bottom: 1px solid #0066cc;
+             border-top: 1px solid #0066cc;
+            font-size: 10px;
+            text-align: center;
+        }
+        
+        .segments-table td {
+            padding: 4px;
+            border: 1px solid #ddd;
+            font-size: 10px;
+            text-align: center;
+        }
+        
+        .segments-table td:first-child {
+            text-align: left;
+        }
+        .subject-from{
+            padding: 1rem;
+            border: 1px solid #ddd;
+            font-size: 12px;
+            text-align: center;
+        }
+        
+        .art-box {
+            border: 1px solid #0066cc;
+            padding: 6px;
+            background: white;
+            margin-bottom: 10px;
+        }
+        
+        .art-box img {
+            max-width: 100%;
+                    height: auto;
+                    max-height: 120px;
+        }
+        
+        .subject-box {
+            background: #e3f2fd;
+            padding: 6px;
+            border: 1px solid #0066cc;
+            margin-top: 10px;
+        }
+        
+        .subject-title {
+            color: #0066cc;
+            font-weight: bold;
+            margin-bottom: 6px;
+            text-align: center;
+            font-size: 11px;
+        }
+        
+        .chart-container {
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        
+        .chart-container img {
+           width: 100%;
+                    height: auto;
+                    max-height: 150px;
+                    object-fit: contain;
+        }
+            
+                </style>
+        <div class="pagina">
+        <img src="${plantillaBase64}" class="fondo-plantilla" />
+       <div class="contenido-real">
+ <!-- Header -->
+        <div class="header">
+            <table>
+                <tr>
+                    <td class="title">DETALLE DE CAMPAÑAS DE: ${formData.detalleCampana || 'SIN DETALLE'}</td>
+                </tr>
+            </table>
+        </div>
+        
+        <!-- Periodo -->
+            <div class="periodo">Periodo: ${formData.periodo || 'Sin periodo'}</div>
+        
+        <!-- Main Layout Table -->
+        <table class="main-table">
+            <tr>
+                <!-- Left Column -->
+                <td class="left-column">
+                    <!-- Correos enviados -->
+                    <div class="section-title_blue">Correos enviados</div>
+                    <table class="metric-box_blue">
+                        <tr>
+                            <td>
+                                <div class="metric-value_dos">${formData.correosEnviados || ''}</div>
+                            </td>
+                        </tr>
+                    </table>
+                    
+                    <!-- Métricas Section -->
+                    <div class="section-title_blue">MÉTRICAS</div>
+                    
+                    <table class="metric-box">
+                        <tr>
+                            <td class="metric-label">
+                                Aperturas
+                            </td>
+                           <td class="metric-value" >
+                               ${metricas.aperturas || ''}
+                            </td>
+                        </tr>
+                    </table>
+                    
+                    <table class="metric-box_dos">
+                        <tr>
+                           <td class="metric-label">
+                                %Open
+                            </td>
+                           <td class="metric-value" >
+                             ${metricas.porcentajeOpen || ''}
+                            </td>
+                        </tr>
+                    </table>
+                     <table class="metric-box">
+                        <tr>
+                           <td class="metric-label">
+                                CTO
+                            </td>
+                           <td class="metric-value" >
+                            ${metricas.cto || ''}
+                            </td>
+                        </tr>
+                    </table>
+                    
+                    <table class="metric-box">
+                        <tr>
+                            <td class="metric-label">
+                                CTR
+                            </td>
+                           <td class="metric-value" >
+                           ${metricas.ctr || ''}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                    
+                </td>
+                 
+                
+                <!-- Right Column -->
+                <td class="right-column">
+                    <!-- Nombre Campaña y Último envío -->
+                    <table style="width: 100%;">
+                        <tr>
+                            <td style="width: 60%; vertical-align: top;">
+                                <table class="info-table">
+                                    <tr>
+                                        <td>
+                                            <div style="margin-bottom: 6px; font-weight: bold;" >Nombre Campaña</div>
+                                             <div>${formData.nombreCampana || ''}</div>
+                                        </td>
+                                        
+                                    </tr>
+                                </table>
+                                
+                                <table class="info-table">
+                                    <tr>
+                                        <td>
+                                            <div style="margin-bottom: 6px;font-weight: bold;" >Último envío</div>
+                                             <div>${formData.ultimoEnvio || ''}</div>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                            <td style="width: 40%; vertical-align: top; padding-left: 8px;">
+                                <!-- Arte -->
+                                <div class="section-title">ARTE</div>
+                                <div class="art-box">
+                                    ${formData.miniatura ? `<img src="${formData.miniatura}" alt="Arte de campaña">` : '<div style="height: 200px; background: #f5f5f5; display: flex; align-items: center; justify-content: center; color: #999;">Sin imagen</div>'}
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                    
+                    <!-- Segmentos Table -->
+                    <div class="section-title">Segmentos</div>
+                    <table class="segments-table">
+                        <thead>
+                            <tr>
+                                <th style="text-align: left;">Especialidad</th>
+                                <th>#Usuarios</th>
+                                <th>#Aperturas</th>
+                                <th>%Open</th>
+                                <th>Clics</th>
+                                <th>CTR</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${segmentosTableRows}
+                        </tbody>
+                    </table>
+                    
+                    <!-- Gráfica de Segmentos enviados -->
+                    ${chartImageBase64 ? `
+                        <div class="chart-container">
+                            <div class="section-title">GRÁFICA DE SEGMENTOS ENVIADOS</div>
+                            <img src="${chartImageBase64}" alt="Gráfica de segmentos">
+                        </div>
+                    
+                    ` : ''}
+                    
+                    <!-- Subject -->
+<div>
+                        <div class="subject-box">
+                        <div class="subject-title">Subject</div>
+                    </div>
+                     <div class="subject-from"  style="text-align: center;">${formData.subject || ''}</div>
+
+</div>                    
+                    <!-- Segmentos enviados (texto) -->
+                    ${segmentosEnviados ? `
+                    <table class="info-table" style="margin-top: 20px;">
+                        <tr>
+                            <td colspan="2">
+                                <div class="section-title">SEGMENTOS ENVIADOS</div>
+                                <div style="padding: 10px;">${segmentosEnviados}</div>
+                            </td>
+                        </tr>
+                    </table>
+                    ` : ''}
+                </td>
+            </tr>
+        </table>
+            </div>
+            </div>
+           `; // (el que ya tienes, no lo toques)
+    
+           
+    
+    
+           
+           const opt = {
+            margin: 0,
+            filename: `reporte_emailing_${fechaActual.replace(/\//g, '-')}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: {
+                scale: 2,
+                useCORS: true,
+                letterRendering: true,
+                allowTaint: false,
+                backgroundColor: '#ffffff',
+                logging: false,
+                windowWidth: 1122, // 297mm * 3.78 (px por mm)
+                windowHeight: 794   // 210mm * 3.78
+            },
+            jsPDF: {
+                unit: 'mm',
+                format: [297, 210],
+                orientation: 'landscape'
+            }
+        };
+
+    
+          // --- 5. Generar PDF directamente ---
+          await html2pdf().set(opt).from(contenidoHTML).save();
+
+    
+            setMensaje({ tipo: 'success', texto: 'PDF generado perfectamente' });
         } catch (error) {
-            console.error('Error al generar PDF:', error);
-            setMensaje({ 
-                tipo: 'danger', 
-                texto: '❌ Error al generar el PDF' 
+            console.error('Error generando PDF:', error);
+            setMensaje({
+                tipo: 'danger',
+                texto: 'Error al generar PDF: ' + (error instanceof Error ? error.message : 'desconocido')
             });
         } finally {
             setLoadingPDF(false);
         }
     };
+    
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -371,11 +855,12 @@ function FormatoReporte() {
     const handleCancel = () => {
         setFormData({
             detalleCampana: '',
+            periodo: '',
             nombreCampana: '',
             ultimoEnvio: '',
             correosEnviados: '',
             subject: '',
-            miniatura: null
+            miniatura: null as string | null
         });
         setMetricas({
             aperturas: '',
@@ -397,6 +882,21 @@ function FormatoReporte() {
 
     return (
         <Container className="mt-4 mb-5">
+        <Row className="mb-4" >
+                            <Col sm={12}>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Periodo</Form.Label>
+                                    <Form.Control 
+                                        type="text"
+                                        name="periodo"
+                                        value={formData.periodo}
+                                        onChange={handleChange}
+                                        placeholder="Periodo de la campaña"
+                                    />
+                                </Form.Group>
+                            </Col>
+        </Row>
+
             <Row className="mb-4">
                 <Col>
                     <div className="d-flex justify-content-between align-items-center mb-4">
@@ -737,6 +1237,24 @@ function FormatoReporte() {
                             </tbody>
                         </Table>
                     </div>
+
+                    {/* Gráfica automática - se muestra si hay datos válidos */}
+                    {segmentos.some(s => 
+                        s.especialidad && s.especialidad.trim() !== '' && 
+                        s.usuarios && s.usuarios.trim() !== '' && 
+                        !isNaN(parseInt(s.usuarios))
+                    ) && (
+                        <Card className="mt-4">
+                            <Card.Header className="bg-light">
+                                <h6 className="mb-0">Segmentos enviados</h6>
+                            </Card.Header>
+                            <Card.Body>
+                                <div style={{ height: '300px', position: 'relative' }}>
+                                    <canvas ref={canvasRefCallback}></canvas>
+                                </div>
+                            </Card.Body>
+                        </Card>
+                    )}
                 </div>
 
                 {/* Segmentos enviados */}
