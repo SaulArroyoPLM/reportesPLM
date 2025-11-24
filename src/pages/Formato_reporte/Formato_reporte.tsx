@@ -888,7 +888,19 @@ function FormatoReporte() {
 
     return (
         <Container className="mt-4 mb-5">
-        <Row className="mb-4" >
+
+            <Row className="mb-4">
+                <Col>
+                    <div className="d-flex justify-content-between align-items-center mb-4">
+                        <h3 className="mb-0">Formato para reporte de emailing</h3>
+                        <div>
+                            <span className="fw-bold me-2">Fecha:</span>
+                            <span>{getCurrentDate()}</span>
+                        </div>
+                    </div>
+                </Col>
+            </Row>
+            <Row className="mb-4" >
                             <Col sm={12}>
                                 <Form.Group className="mb-3">
                                     <Form.Label>Periodo</Form.Label>
@@ -902,18 +914,6 @@ function FormatoReporte() {
                                 </Form.Group>
                             </Col>
         </Row>
-
-            <Row className="mb-4">
-                <Col>
-                    <div className="d-flex justify-content-between align-items-center mb-4">
-                        <h3 className="mb-0">Formato para reporte de emailing</h3>
-                        <div>
-                            <span className="fw-bold me-2">Fecha:</span>
-                            <span>{getCurrentDate()}</span>
-                        </div>
-                    </div>
-                </Col>
-            </Row>
 
             {mensaje.texto && (
                 <Alert variant={mensaje.tipo} onClose={() => setMensaje({ tipo: '', texto: '' })} dismissible>
