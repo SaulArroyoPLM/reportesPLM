@@ -2,20 +2,22 @@ import React, { useState } from "react";
 import { Container, Row, Col, Form, Button, Card, Alert, Spinner } from 'react-bootstrap';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUpload, faCheckCircle, faTimes, faDownload } from "@fortawesome/free-solid-svg-icons";
+import ChipInput from "../../components/ChipInput/ChipInput";
+import './formato_envio.css';
 
 function FormatoEnvio() {
     const [formData, setFormData] = useState({
         aplicacion: '',
         laboratorio: '',
         rutaArte: '',
-        segmento: '',
+        segmento: [],  
         periodicidad: '',
         subject: '',
         callToAction: '',
         comentarios: '',
         fechasPropuestas: '',
         numeroEnvios: '',
-        correosClientes: '',
+        correosClientes: [], 
         miniatura: null as string | null
     });
 
@@ -397,6 +399,15 @@ document.body.appendChild(element);
         return today.toLocaleDateString('es-MX');
     };
 
+
+    const [emailsClientes, setEmailsClientes] = useState([]);
+    const [segmentos, setSegmentos] = useState([]);
+    
+    const validateEmail = (email) => /\S+@\S+\.\S+/.test(email);
+
+
+
+
     return (
         <Container className="mt-4 mb-5">
             <Row className="mb-4">
@@ -415,8 +426,8 @@ document.body.appendChild(element);
 
             <Form onSubmit={handleSubmit}>
                 <Row className="mt-4">
-                    <Col>
-                        <p className="titulo_formato">Información de la campaña</p>
+                    <Col md={12} >
+                        <h5 className="titulo_formato text-primary">Información de la campaña</h5>
                     </Col>
                 </Row>
                 
@@ -466,17 +477,27 @@ document.body.appendChild(element);
                             </Col>
 
                             <Col sm={6}>
-                                <Form.Group className="mb-3">
-                                    <Form.Label>Segmento a dirigir:</Form.Label>
-                                    <Form.Control 
-                                        type="text"
-                                        name="segmento"
-                                        value={formData.segmento}
-                                        onChange={handleChange}
-                                        placeholder="Ingresa el segmento objetivo"
-                                    />
-                                </Form.Group>
-                            </Col>
+    <Form.Group className="mb-3">
+        <Form.Label>Segmento a dirigir:</Form.Label>
+
+        <ChipInput 
+            items={segmentos}
+            setItems={(list) => {
+                setSegmentos(list);
+
+                // actualizar formData
+                setFormData(prev => ({
+                    ...prev,
+                    segmento: list
+                }));
+            }}
+            placeholder="Ej: Medicina general, Enfermería..."
+            badgeColor="info"
+        />
+    </Form.Group>
+</Col>
+
+
                         </Row>
 
                         <Row>
@@ -591,7 +612,11 @@ document.body.appendChild(element);
                 </Row>
                 {/* Contenido del mailing */}
                 <div className="mb-4">
-                    <h5 className="mb-3 text-primary">Contenido del mailing</h5>
+                    <Row>
+                    <Col md={12}>
+                    <h5 className="titulo_formato mb-3 text-primary">Contenido del mailing</h5>
+                    </Col>
+                    </Row>
                     <Row className="mb-3">
                         <Col md={6}>
                             <Form.Group>
@@ -640,7 +665,11 @@ document.body.appendChild(element);
 
                 {/* Parámetros de envío */}
                 <div className="mb-4">
-                    <h5 className="mb-3 text-primary">Parámetros de envío</h5>
+                    <Row>
+                    <Col md={12}>
+                    <h5 className=" titulo_formato mb-3 text-primary">Parámetros de envío</h5>
+                    </Col>
+                    </Row>
                     <Row className="mb-3">
                         <Col md={4}>
                             <Form.Group>
@@ -666,17 +695,30 @@ document.body.appendChild(element);
                             </Form.Group>
                         </Col>
                         <Col md={4}>
-                            <Form.Group>
-                                <Form.Label>Correos de los clientes:</Form.Label>
-                                <Form.Control
-                                    type="text"
-                                    name="correosClientes"
-                                    value={formData.correosClientes}
-                                    onChange={handleChange}
-                                    placeholder="Separados por coma"
-                                />
-                            </Form.Group>
-                        </Col>
+    <Form.Group>
+        <Form.Label>Correos de los clientes:</Form.Label>
+
+        <ChipInput 
+             items={emailsClientes}
+             setItems={(list) => {
+                 setEmailsClientes(list);
+ 
+                 // actualizar formData
+                 setFormData(prev => ({
+                     ...prev,
+                     correosClientes: list
+                 }));
+             }}
+             placeholder="Escribe un correo y presiona Enter"
+             validate={validateEmail}        // ⬅️ validación
+             badgeColor="primary"
+        />
+
+        {/* Si necesitas mandarlo como string al backend */}
+        <input type="hidden" name="correosClientes" value={emailsClientes.join(",")} />
+    </Form.Group>
+</Col>
+
                     </Row>
                 </div>
 
