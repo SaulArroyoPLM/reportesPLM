@@ -253,7 +253,7 @@ const handleFileChange = (e) => {
             
             <tr>
                 <td style="color: #3f3f3f; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
-                    Número de envíos<br>/ fechas propuestas:
+                    Envio de campaña:
                 </td>
                 <td class="celda-larga" style="background: white; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
                     ${formData.numeroEnvios || ''} ${formData.fechasPropuestas ? '/ ' + formData.fechasPropuestas : ''}
