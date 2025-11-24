@@ -355,12 +355,12 @@ function FormatoReporte() {
             // --- 2. Generar filas tabla ---
             const segmentosTableRows = segmentos.map(seg => `
                 <tr>
-                    <td style="padding: 6px; border: 1px solid #ddd; font-size: 11px;">${seg.especialidad || '-'}</td>
-                    <td style="padding: 6px; border: 1px solid #ddd; font-size: 11px; text-align: center;">${seg.usuarios || '-'}</td>
-                    <td style="padding: 6px; border: 1px solid #ddd; font-size: 11px; text-align: center;">${seg.aperturas || '-'}</td>
-                    <td style="padding: 6px; border: 1px solid #ddd; font-size: 11px; text-align: center;">${seg.porcentajeOpen || '-'}</td>
-                    <td style="padding: 6px; border: 1px solid #ddd; font-size: 11px; text-align: center;">${seg.clics || '-'}</td>
-                    <td style="padding: 6px; border: 1px solid #ddd; font-size: 11px; text-align: center;">${seg.ctr || '-'}</td>
+                    <td style="padding: 6px; border-buttom: 1px solid #ddd; font-size: 11px;">${seg.especialidad || '-'}</td>
+                    <td style="padding: 6px; border-buttom: 1px solid #ddd; font-size: 11px; text-align: center;">${seg.usuarios || '-'}</td>
+                    <td style="padding: 6px; border-buttom: 1px solid #ddd; font-size: 11px; text-align: center;">${seg.aperturas || '-'}</td>
+                    <td style="padding: 6px; border-buttom: 1px solid #ddd; font-size: 11px; text-align: center;">${seg.porcentajeOpen || '-'}</td>
+                    <td style="padding: 6px; border-buttom: 1px solid #ddd; font-size: 11px; text-align: center;">${seg.clics || '-'}</td>
+                    <td style="padding: 6px; border-buttom: 1px solid #ddd; font-size: 11px; text-align: center;">${seg.ctr || '-'}</td>
                 </tr>
             `).join('');
     
@@ -466,15 +466,16 @@ function FormatoReporte() {
             color: #0066cc;
             font-size: 14px;
             font-weight: bold;
-            height: 40px;
+            height: 50px;
             padding: 8px;
             background: #D6E8F5;
+           border: 1px solid #0066cc;
             width:50%;
         }
         
         .metric-value {
             color: #0066cc;
-            font-size: 13px;
+            font-size: 16px;
             font-weight: bold;
             text-align:center;
              width:50%;
@@ -483,7 +484,7 @@ function FormatoReporte() {
         }
                .metric-value_dos {
             color: #0066cc;
-            font-size: 13px;
+            font-size: 20px;
             font-weight: bold;
             text-align:center;
              width:100%;
@@ -539,7 +540,8 @@ function FormatoReporte() {
         
         .segments-table td {
             padding: 4px;
-            border: 1px solid #ddd;
+            border-buttom: 1px solid #ddd;
+             border-top: 1px solid #ddd;
             font-size: 10px;
             text-align: center;
         }
@@ -559,6 +561,9 @@ function FormatoReporte() {
             padding: 6px;
             background: white;
             margin-bottom: 10px;
+            display: flex; 
+            align-items: center;
+            justify-content: center;
         }
         
         .art-box img {
@@ -617,7 +622,7 @@ function FormatoReporte() {
                 <!-- Left Column -->
                 <td class="left-column">
                     <!-- Correos enviados -->
-                    <div class="section-title_blue">Correos enviados</div>
+                    <div class="section-title">Correos enviados</div>
                     <table class="metric-box_blue">
                         <tr>
                             <td>
@@ -627,7 +632,8 @@ function FormatoReporte() {
                     </table>
                     
                     <!-- Métricas Section -->
-                    <div class="section-title_blue">MÉTRICAS</div>
+                    <div class="section-title">Métricas</div>
+                    
                     
                     <table class="metric-box">
                         <tr>
@@ -672,6 +678,15 @@ function FormatoReporte() {
                         </tr>
                     </table>
                 </div>
+
+                                    <!-- Subject -->
+<div>
+                        <div class="subject-box">
+                        <div class="subject-title">Subject</div>
+                    </div>
+                     <div class="subject-from"  style="text-align: center;">${formData.subject || ''}</div>
+
+</div>  
                     
                 </td>
                  
@@ -685,7 +700,7 @@ function FormatoReporte() {
                                 <table class="info-table">
                                     <tr>
                                         <td>
-                                            <div style="margin-bottom: 6px; font-weight: bold;" >Nombre Campaña</div>
+                                          <div class="section-title">Nombre Campaña</div>
                                              <div>${formData.nombreCampana || ''}</div>
                                         </td>
                                         
@@ -695,7 +710,7 @@ function FormatoReporte() {
                                 <table class="info-table">
                                     <tr>
                                         <td>
-                                            <div style="margin-bottom: 6px;font-weight: bold;" >Último envío</div>
+                                          <div class="section-title">Último envío</div>
                                              <div>${formData.ultimoEnvio || ''}</div>
                                         </td>
                                     </tr>
@@ -703,7 +718,7 @@ function FormatoReporte() {
                             </td>
                             <td style="width: 40%; vertical-align: top; padding-left: 8px;">
                                 <!-- Arte -->
-                                <div class="section-title">ARTE</div>
+                                <div class="section-title">Arte</div>
                                 <div class="art-box">
                                     ${formData.miniatura ? `<img src="${formData.miniatura}" alt="Arte de campaña">` : '<div style="height: 200px; background: #f5f5f5; display: flex; align-items: center; justify-content: center; color: #999;">Sin imagen</div>'}
                                 </div>
@@ -732,26 +747,17 @@ function FormatoReporte() {
                     <!-- Gráfica de Segmentos enviados -->
                     ${chartImageBase64 ? `
                         <div class="chart-container">
-                            <div class="section-title">GRÁFICA DE SEGMENTOS ENVIADOS</div>
+                            <div class="section-title">Gráfica de segmentos enviados</div>
                             <img src="${chartImageBase64}" alt="Gráfica de segmentos">
                         </div>
                     
-                    ` : ''}
-                    
-                    <!-- Subject -->
-<div>
-                        <div class="subject-box">
-                        <div class="subject-title">Subject</div>
-                    </div>
-                     <div class="subject-from"  style="text-align: center;">${formData.subject || ''}</div>
-
-</div>                    
+                    ` : ''}                  
                     <!-- Segmentos enviados (texto) -->
                     ${segmentosEnviados ? `
                     <table class="info-table" style="margin-top: 20px;">
                         <tr>
                             <td colspan="2">
-                                <div class="section-title">SEGMENTOS ENVIADOS</div>
+                                <div class="section-title">Segmentos enviados</div>
                                 <div style="padding: 10px;">${segmentosEnviados}</div>
                             </td>
                         </tr>
