@@ -211,7 +211,9 @@ const handleFileChange = (e) => {
                     Ruta arte:
                 </td>
                 <td class="celda-larga" style="background: white; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
-                    ${formData.rutaArte || ''}
+                   <a href="${formData.rutaArte}" target="_blank" style="color:#007bff; text-decoration: underline;">
+        ${formData.rutaArte}
+    </a>
                 </td>
             </tr>
             
@@ -451,9 +453,9 @@ document.body.appendChild(element);
                         <Row>
                             <Col sm={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Ruta arte <span className="text-danger">*</span></Form.Label>
+                                    <Form.Label>Ruta arte</Form.Label>
                                     <Form.Control 
-                                        type="text"
+                                           type="url"
                                         name="rutaArte"
                                         value={formData.rutaArte}
                                         onChange={handleChange}
