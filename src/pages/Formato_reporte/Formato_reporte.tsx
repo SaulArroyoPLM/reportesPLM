@@ -99,6 +99,7 @@ function FormatoReporte() {
             // Preparar datos
             const labels = segmentosConDatos.map(s => s.especialidad);
             const usuarios = segmentosConDatos.map(s => parseInt(s.usuarios) || 0);
+            const aperturas = segmentosConDatos.map(s => parseInt(s.aperturas) || 0); // ← NUEVO
             
             // Obtener contexto
             const ctx = chartUsuariosRef.current.getContext('2d');
@@ -110,13 +111,22 @@ function FormatoReporte() {
                     type: 'bar',
                     data: {
                         labels: labels,
-                        datasets: [{
-                            label: 'Usuarios',
-                            data: usuarios,
-                            backgroundColor: 'rgba(54, 162, 235, 0.8)',
-                            borderColor: 'rgba(54, 162, 235, 1)',
-                            borderWidth: 1
-                        }]
+                        datasets: [
+                            {
+                                label: 'Usuarios',
+                                data: usuarios,
+                                backgroundColor: 'rgba(54, 162, 235, 0.8)', // Azul
+                                borderColor: 'rgba(54, 162, 235, 1)',
+                                borderWidth: 1
+                            },
+                            {
+                                label: 'Aperturas',
+                                data: aperturas,
+                                backgroundColor: 'rgba(75, 192, 192, 0.8)', // Verde
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                borderWidth: 1
+                            }
+                        ]
                     },
                     options: {
                         indexAxis: 'y',
@@ -135,10 +145,12 @@ function FormatoReporte() {
                         },
                         scales: {
                             x: { 
+                                stacked: true,  // ← AGREGAR ESTO
                                 beginAtZero: true,
                                 grid: { display: true }
                             },
                             y: {
+                                stacked: true,  // ← AGREGAR ESTO
                                 grid: { display: false }
                             }
                         }
@@ -185,12 +197,63 @@ function FormatoReporte() {
             }
         }, 50);
 
+        
+
         // Cleanup: destruir gráfica al desmontar o cuando cambien los datos
         return () => {
             clearTimeout(timeoutId);
             limpiarGrafica();
         };
     }, [segmentos, crearGrafica, limpiarGrafica]);
+
+    // NUEVO useEffect para calcular %Open automáticamente
+useEffect(() => {
+    if (formData.correosEnviados && metricas.aperturas) {
+        const porcentaje = (metricas.aperturas / formData.correosEnviados * 100).toFixed(2);
+        setMetricas(prev => ({
+            ...prev,
+            porcentajeOpen: porcentaje
+        }));
+    } else if (!formData.correosEnviados || !metricas.aperturas) {
+        setMetricas(prev => ({
+            ...prev,
+            porcentajeOpen: ''
+        }));
+    }
+}, [formData.correosEnviados, metricas.aperturas]);
+// useEffect para calcular CTR automáticamente
+// CTR = Clic / envíos * 100
+useEffect(() => {
+    if (formData.correosEnviados && metricas.clic) {
+        const ctrCalculado = (metricas.clic / formData.correosEnviados * 100).toFixed(2);
+        setMetricas(prev => ({
+            ...prev,
+            ctr: ctrCalculado
+        }));
+    } else if (!formData.correosEnviados || !metricas.clic) {
+        setMetricas(prev => ({
+            ...prev,
+            ctr: ''
+        }));
+    }
+}, [formData.correosEnviados, metricas.clic]);
+
+// useEffect para calcular CTOR automáticamente
+// CTOR = Clic / aperturas * 100
+useEffect(() => {
+    if (metricas.aperturas && metricas.clic) {
+        const ctorCalculado = (metricas.clic / metricas.aperturas * 100).toFixed(2);
+        setMetricas(prev => ({
+            ...prev,
+            ctor: ctorCalculado
+        }));
+    } else if (!metricas.aperturas || !metricas.clic) {
+        setMetricas(prev => ({
+            ...prev,
+            ctor: ''
+        }));
+    }
+}, [metricas.aperturas, metricas.clic]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -295,10 +358,31 @@ function FormatoReporte() {
     };
 
     // Funciones para manejar la tabla de segmentos
-    const handleSegmentoChange = (id, field, value) => {
-        setSegmentos(prev => prev.map(seg => 
-            seg.id === id ? { ...seg, [field]: value } : seg
-        ));
+    const handleSegmentoChange = (id, campo, valor) => {
+        setSegmentos(prevSegmentos => 
+            prevSegmentos.map(segmento => {
+                if (segmento.id === id) {
+                    // Actualizar el campo que cambió
+                    const segmentoActualizado = {
+                        ...segmento,
+                        [campo]: valor
+                    };
+    
+                    // Si el campo modificado afecta los cálculos, recalcular
+                    if (campo === 'usuarios' || campo === 'aperturas' || campo === 'clics') {
+                        const { porcentajeOpen, ctr } = calcularPorcentajesSegmento(segmentoActualizado);
+                        return {
+                            ...segmentoActualizado,
+                            porcentajeOpen,
+                            ctr
+                        };
+                    }
+    
+                    return segmentoActualizado;
+                }
+                return segmento;
+            })
+        );
     };
 
     const agregarSegmento = () => {
@@ -661,7 +745,7 @@ function FormatoReporte() {
                      <table class="metric-box">
                         <tr>
                            <td class="metric-label">
-                                CTO
+                                Clic
                             </td>
                            <td class="metric-value" >
                             ${metricas.clic || ''}
@@ -683,7 +767,7 @@ function FormatoReporte() {
                     <table class="metric-box">
                         <tr>
                             <td class="metric-label">
-                              CTOR entre aperturas
+                              CTOR
                             </td>
                            <td class="metric-value" >
                            ${metricas.ctor || ''}
@@ -700,15 +784,6 @@ function FormatoReporte() {
                      <div class="subject-from"  style="text-align: center;">${formData.subject || ''}</div>
 
 </div>
-                    ${formData.preheader ? `
-                    <!-- Preheader -->
-                    <div style="margin-top: 10px;">
-                        <div class="subject-box">
-                            <div class="subject-title">Preheader</div>
-                        </div>
-                        <div class="subject-from" style="text-align: center;">${formData.preheader}</div>
-                    </div>
-                    ` : ''}  
                     
                 </td>
                  
@@ -731,12 +806,26 @@ function FormatoReporte() {
                                 
                                 <table class="info-table">
                                     <tr>
-                                        <td>
+                                       <td> 
                                           <div class="section-title">Último envío</div>
                                              <div>${formData.ultimoEnvio || ''}</div>
                                         </td>
                                     </tr>
                                 </table>
+                                <table class="info-table">
+                                  <tr>
+                                   <td> 
+                                    ${formData.preheader ? `
+                    <!-- Preheader -->
+                            <div class="section-title">Preheader</div>
+                        <div style="text-align: center;">${formData.preheader}</div>
+          
+                    ` : ''}  
+                                   </td>
+                                  </tr>
+                                </table>
+
+
                             </td>
                             <td style="width: 40%; vertical-align: top; padding-left: 8px;">
                                 <!-- Arte -->
@@ -773,18 +862,9 @@ function FormatoReporte() {
                             <img src="${chartImageBase64}" alt="Gráfica de segmentos">
                         </div>
                     
-                    ` : ''}                  
-                    <!-- Segmentos enviados (texto) -->
-                    ${segmentosEnviados ? `
-                    <table class="info-table" style="margin-top: 20px;">
-                        <tr>
-                            <td colspan="2">
-                                <div class="section-title">Segmentos enviados</div>
-                                <div style="padding: 10px;">${segmentosEnviados}</div>
-                            </td>
-                        </tr>
-                    </table>
-                    ` : ''}
+                    ` : ''}      
+                    
+                    
                 </td>
             </tr>
         </table>
@@ -908,6 +988,27 @@ function FormatoReporte() {
     const getCurrentDate = () => {
         const today = new Date();
         return today.toLocaleDateString('es-MX');
+    };
+
+    const calcularPorcentajesSegmento = (segmento) => {
+        const usuarios = parseFloat(segmento.usuarios) || 0;
+        const aperturas = parseFloat(segmento.aperturas) || 0;
+        const clics = parseFloat(segmento.clics) || 0;
+    
+        let porcentajeOpen = '';
+        let ctr = '';
+    
+        // Calcular %Open = aperturas / usuarios * 100
+        if (usuarios > 0 && aperturas > 0) {
+            porcentajeOpen = ((aperturas / usuarios) * 100).toFixed(2);
+        }
+    
+        // Calcular CTR = clics / usuarios * 100
+        if (usuarios > 0 && clics > 0) {
+            ctr = ((clics / usuarios) * 100).toFixed(2);
+        }
+    
+        return { porcentajeOpen, ctr };
     };
 
     return (
@@ -1145,21 +1246,9 @@ function FormatoReporte() {
                         </Col>
                         <Col md={2}>
                             <Form.Group className="mb-3">
-                                <Form.Label>%Open</Form.Label>
-                                <Form.Control
-                                    type="text"
-                                    name="porcentajeOpen"
-                                    value={metricas.porcentajeOpen}
-                                    onChange={handleMetricasChange}
-                                    placeholder="Ej: 25%"
-                                />
-                            </Form.Group>
-                        </Col>
-                        <Col md={2}>
-                            <Form.Group className="mb-3">
                                 <Form.Label>Click</Form.Label>
                                 <Form.Control
-                                    type="text"
+                                   type="number"
                                     name="clic"
                                     value={metricas.clic}
                                     onChange={handleMetricasChange}
@@ -1167,30 +1256,93 @@ function FormatoReporte() {
                                 />
                             </Form.Group>
                         </Col>
+
+
                         <Col md={2}>
-                            <Form.Group className="mb-3">
-                                <Form.Label>CTR</Form.Label>
-                                <Form.Control
-                                    type="text"
-                                    name="ctr"
-                                    value={metricas.ctr}
-                                    onChange={handleMetricasChange}
-                                    placeholder="Valor"
-                                />
-                            </Form.Group>
-                        </Col>
-                        <Col md={2}>
-                            <Form.Group className="mb-3">
-                                <Form.Label>CTOR entre aperturas</Form.Label>
-                                <Form.Control
-                                    type="text"
-                                    name="ctor"
-                                    value={metricas.ctor}
-                                    onChange={handleMetricasChange}
-                                    placeholder="Valor"
-                                />
-                            </Form.Group>
-                        </Col>
+    <Form.Group className="mb-3">
+        <Form.Label>%Open</Form.Label>
+        <div style={{ position: 'relative' }}>
+            <Form.Control
+                type="text"
+                name="porcentajeOpen"
+                value={metricas.porcentajeOpen}
+                readOnly
+                placeholder="0.00"
+                style={{ 
+                    backgroundColor: '#e9ecef',
+                    paddingRight: '30px'
+                }}
+            />
+            <span style={{
+                position: 'absolute',
+                right: '10px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                pointerEvents: 'none',
+                color: '#6c757d'
+            }}>
+                %
+            </span>
+        </div>
+    </Form.Group>
+</Col>
+                      
+<Col md={2}>
+    <Form.Group className="mb-3">
+        <Form.Label>CTR</Form.Label>
+        <div style={{ position: 'relative' }}>
+            <Form.Control
+                type="text"
+                name="ctr"
+                value={metricas.ctr}
+                readOnly
+                placeholder="0.00"
+                style={{ 
+                    backgroundColor: '#e9ecef',
+                    paddingRight: '30px'
+                }}
+            />
+            <span style={{
+                position: 'absolute',
+                right: '10px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                pointerEvents: 'none',
+                color: '#6c757d'
+            }}>
+                %
+            </span>
+        </div>
+    </Form.Group>
+</Col>
+<Col md={2}>
+    <Form.Group className="mb-3">
+        <Form.Label>CTOR entre aperturas</Form.Label>
+        <div style={{ position: 'relative' }}>
+            <Form.Control
+                type="text"
+                name="ctor"
+                value={metricas.ctor}
+                readOnly
+                placeholder="0.00"
+                style={{ 
+                    backgroundColor: '#e9ecef',
+                    paddingRight: '30px'
+                }}
+            />
+            <span style={{
+                position: 'absolute',
+                right: '10px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                pointerEvents: 'none',
+                color: '#6c757d'
+            }}>
+                %
+            </span>
+        </div>
+    </Form.Group>
+</Col>
                     </Row>
                 </div>
 
@@ -1218,8 +1370,8 @@ function FormatoReporte() {
                                     <th>Especialidad</th>
                                     <th>#Usuarios</th>
                                     <th>#Aperturas</th>
-                                    <th>%Open</th>
                                     <th>Clics</th>
+                                    <th>%Open</th>
                                     <th>CTR</th>
                                     <th style={{ width: '80px' }}>Acción</th>
                                 </tr>
@@ -1257,15 +1409,6 @@ function FormatoReporte() {
                                         <td>
                                             <Form.Control
                                                 size="sm"
-                                                type="text"
-                                                value={segmento.porcentajeOpen}
-                                                onChange={(e) => handleSegmentoChange(segmento.id, 'porcentajeOpen', e.target.value)}
-                                                placeholder="0%"
-                                            />
-                                        </td>
-                                        <td>
-                                            <Form.Control
-                                                size="sm"
                                                 type="number"
                                                 value={segmento.clics}
                                                 onChange={(e) => handleSegmentoChange(segmento.id, 'clics', e.target.value)}
@@ -1273,14 +1416,58 @@ function FormatoReporte() {
                                             />
                                         </td>
                                         <td>
-                                            <Form.Control
-                                                size="sm"
-                                                type="text"
-                                                value={segmento.ctr}
-                                                onChange={(e) => handleSegmentoChange(segmento.id, 'ctr', e.target.value)}
-                                                placeholder="0%"
-                                            />
-                                        </td>
+    <div style={{ position: 'relative' }}>
+        <Form.Control
+            size="sm"
+            type="text"
+            value={segmento.porcentajeOpen}
+            readOnly
+            placeholder="0.00"
+            style={{ 
+                backgroundColor: '#e9ecef',
+                paddingRight: '30px'
+            }}
+        />
+        <span style={{
+            position: 'absolute',
+            right: '10px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            pointerEvents: 'none',
+            color: '#6c757d',
+            fontSize: '0.875rem'
+        }}>
+            %
+        </span>
+    </div>
+</td>
+                                        
+<td>
+    <div style={{ position: 'relative' }}>
+        <Form.Control
+            size="sm"
+            type="text"
+            value={segmento.ctr}
+            readOnly
+            placeholder="0.00"
+            style={{ 
+                backgroundColor: '#e9ecef',
+                paddingRight: '30px'
+            }}
+        />
+        <span style={{
+            position: 'absolute',
+            right: '10px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            pointerEvents: 'none',
+            color: '#6c757d',
+            fontSize: '0.875rem'
+        }}>
+            %
+        </span>
+    </div>
+</td>
                                         <td className="text-center">
                                             <Button
                                                 variant="danger"
@@ -1314,20 +1501,6 @@ function FormatoReporte() {
                             </Card.Body>
                         </Card>
                     )}
-                </div>
-
-                {/* Segmentos enviados */}
-                <div className="mt-4 mb-4">
-                    <h5 className=" titulo_formato_reporte text-primary mb-3">Segmentos enviados</h5>
-                    <Form.Group>
-                        <Form.Control
-                            as="textarea"
-                            rows={4}
-                            value={segmentosEnviados}
-                            onChange={(e) => setSegmentosEnviados(e.target.value)}
-                            placeholder="Describe los segmentos a los que se envió el mailing..."
-                        />
-                    </Form.Group>
                 </div>
 
                 {/* Botones */}
