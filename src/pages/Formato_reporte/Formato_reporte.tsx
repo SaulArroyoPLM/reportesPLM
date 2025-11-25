@@ -38,6 +38,7 @@ function FormatoReporte() {
         ultimoEnvio: '',
         correosEnviados: '',
         subject: '',
+        preheader: '',
         miniatura: null as string | null
     });
 
@@ -45,8 +46,9 @@ function FormatoReporte() {
     const [metricas, setMetricas] = useState({
         aperturas: '',
         porcentajeOpen: '',
-        cto: '',
-        ctr: ''
+        clic: '',
+        ctr: '',
+        ctor: ''
     });
 
     // Tabla de segmentos
@@ -662,7 +664,7 @@ function FormatoReporte() {
                                 CTO
                             </td>
                            <td class="metric-value" >
-                            ${metricas.cto || ''}
+                            ${metricas.clic || ''}
                             </td>
                         </tr>
                     </table>
@@ -677,6 +679,17 @@ function FormatoReporte() {
                             </td>
                         </tr>
                     </table>
+
+                    <table class="metric-box">
+                        <tr>
+                            <td class="metric-label">
+                              CTOR entre aperturas
+                            </td>
+                           <td class="metric-value" >
+                           ${metricas.ctor || ''}
+                            </td>
+                        </tr>
+                    </table>
                 </div>
 
                                     <!-- Subject -->
@@ -686,7 +699,16 @@ function FormatoReporte() {
                     </div>
                      <div class="subject-from"  style="text-align: center;">${formData.subject || ''}</div>
 
-</div>  
+</div>
+                    ${formData.preheader ? `
+                    <!-- Preheader -->
+                    <div style="margin-top: 10px;">
+                        <div class="subject-box">
+                            <div class="subject-title">Preheader</div>
+                        </div>
+                        <div class="subject-from" style="text-align: center;">${formData.preheader}</div>
+                    </div>
+                    ` : ''}  
                     
                 </td>
                  
@@ -777,7 +799,7 @@ function FormatoReporte() {
            const opt = {
             margin: 0,
             filename: `reporte_emailing_${fechaActual.replace(/\//g, '-')}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
+            image: { type: 'jpeg' as const, quality: 0.98 },
             html2canvas: {
                 scale: 2,
                 useCORS: true,
@@ -790,8 +812,8 @@ function FormatoReporte() {
             },
             jsPDF: {
                 unit: 'mm',
-                format: [297, 210],
-                orientation: 'landscape'
+                format: [297, 210] as [number, number],
+                orientation: 'landscape' as const
             }
         };
 
@@ -866,13 +888,15 @@ function FormatoReporte() {
             ultimoEnvio: '',
             correosEnviados: '',
             subject: '',
+            preheader: '',
             miniatura: null as string | null
         });
         setMetricas({
             aperturas: '',
             porcentajeOpen: '',
-            cto: '',
-            ctr: ''
+            clic: '',
+            ctr: '',
+            ctor: ''
         });
         setSegmentos([
             { id: 1, especialidad: '', usuarios: '', aperturas: '', porcentajeOpen: '', clics: '', ctr: '' }
@@ -988,7 +1012,7 @@ function FormatoReporte() {
                         </Row>
 
                         <Row>
-                            <Col sm={12}>
+                            <Col sm={6}>
                                 <Form.Group className="mb-3">
                                     <Form.Label>Subject</Form.Label>
                                     <Form.Control 
@@ -998,6 +1022,19 @@ function FormatoReporte() {
                                         value={formData.subject}
                                         onChange={handleChange}
                                         placeholder="Asunto del correo enviado"
+                                    />
+                                </Form.Group>
+                            </Col>
+                            <Col sm={6}>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Preheader</Form.Label>
+                                    <Form.Control 
+                                        as="textarea"
+                                        rows={3}
+                                        name="preheader"
+                                        value={formData.preheader}
+                                        onChange={handleChange}
+                                        placeholder="Preheader del correo enviado"
                                     />
                                 </Form.Group>
                             </Col>
@@ -1091,10 +1128,10 @@ function FormatoReporte() {
                 </Row>
 
                 {/* Sección: Métricas */}
-                <div className="mt-5 mb-4">
+                <div className="mt-5 mb-4 backgroundTres p-3 ">
                     <h5 className=" titulo_formato_reporte text-primary mb-3">Métricas</h5>
-                    <Row>
-                        <Col md={3}>
+                    <Row className="justify-content-between" >
+                        <Col md={2}>
                             <Form.Group className="mb-3">
                                 <Form.Label>Aperturas</Form.Label>
                                 <Form.Control
@@ -1106,7 +1143,7 @@ function FormatoReporte() {
                                 />
                             </Form.Group>
                         </Col>
-                        <Col md={3}>
+                        <Col md={2}>
                             <Form.Group className="mb-3">
                                 <Form.Label>%Open</Form.Label>
                                 <Form.Control
@@ -1118,25 +1155,37 @@ function FormatoReporte() {
                                 />
                             </Form.Group>
                         </Col>
-                        <Col md={3}>
+                        <Col md={2}>
                             <Form.Group className="mb-3">
-                                <Form.Label>CTO</Form.Label>
+                                <Form.Label>Click</Form.Label>
                                 <Form.Control
                                     type="text"
-                                    name="cto"
-                                    value={metricas.cto}
+                                    name="clic"
+                                    value={metricas.clic}
                                     onChange={handleMetricasChange}
                                     placeholder="Valor"
                                 />
                             </Form.Group>
                         </Col>
-                        <Col md={3}>
+                        <Col md={2}>
                             <Form.Group className="mb-3">
                                 <Form.Label>CTR</Form.Label>
                                 <Form.Control
                                     type="text"
                                     name="ctr"
                                     value={metricas.ctr}
+                                    onChange={handleMetricasChange}
+                                    placeholder="Valor"
+                                />
+                            </Form.Group>
+                        </Col>
+                        <Col md={2}>
+                            <Form.Group className="mb-3">
+                                <Form.Label>CTOR entre aperturas</Form.Label>
+                                <Form.Control
+                                    type="text"
+                                    name="ctor"
+                                    value={metricas.ctor}
                                     onChange={handleMetricasChange}
                                     placeholder="Valor"
                                 />

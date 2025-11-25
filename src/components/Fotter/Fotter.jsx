@@ -10,7 +10,7 @@ function Fotter() {
         <>
         <footer class="estiloFooter">
              <Container fluid>
-                <div class="border-footer mt-4 mb-4 pt-4 pb-4 w-100">
+                <div class="border-footer mt-4 pt-4 pb-4 w-100">
                     <Link to="/">
                         <img 
                             className="d-block mx-auto logo-footer"

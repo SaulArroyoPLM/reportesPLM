@@ -427,7 +427,7 @@ document.body.appendChild(element);
             <Form onSubmit={handleSubmit}>
                 <Row className="mt-4">
                     <Col md={12} >
-                        <h5 className="titulo_formato text-primary">Información de la campaña</h5>
+                        <h5 className="titulo_formato">Información de la campaña</h5>
                     </Col>
                 </Row>
                 
@@ -611,10 +611,12 @@ document.body.appendChild(element);
                     </Col>
                 </Row>
                 {/* Contenido del mailing */}
+
+                <Container className="backgroundTres p-3 my-4">
                 <div className="mb-4">
                     <Row>
                     <Col md={12}>
-                    <h5 className="titulo_formato mb-3 text-primary">Contenido del mailing</h5>
+                    <h5 className="titulo_formato mb-3 ">Contenido del mailing</h5>
                     </Col>
                     </Row>
                     <Row className="mb-3">
@@ -662,12 +664,13 @@ document.body.appendChild(element);
                         </Col>
                     </Row>
                 </div>
+                </Container>  
 
                 {/* Parámetros de envío */}
                 <div className="mb-4">
                     <Row>
                     <Col md={12}>
-                    <h5 className=" titulo_formato mb-3 text-primary">Parámetros de envío</h5>
+                    <h5 className=" titulo_formato mb-3">Parámetros de envío</h5>
                     </Col>
                     </Row>
                     <Row className="mb-3">
