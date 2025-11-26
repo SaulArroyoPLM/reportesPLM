@@ -1027,7 +1027,7 @@ useEffect(() => {
             </Row>
             <Row className="mt-4">
                     <Col>
-                        <h5 className="titulo_formato_reporte text-primary mb-3">Inicio</h5>
+                        <h5 className="titulo_formato_reporte  mb-3">Datos de la campaña</h5>
                     </Col>
                 </Row>
             <Row className="mb-4" >
@@ -1230,7 +1230,7 @@ useEffect(() => {
 
                 {/* Sección: Métricas */}
                 <div className="mt-5 mb-4 backgroundTres p-3 ">
-                    <h5 className=" titulo_formato_reporte text-primary mb-3">Métricas</h5>
+                    <h5 className=" titulo_formato_reporte mb-3">Objetivos de la campaña</h5>
                     <Row className="justify-content-between" >
                         <Col md={2}>
                             <Form.Group className="mb-3">
@@ -1349,7 +1349,7 @@ useEffect(() => {
                 {/* Sección: Segmentos (Tabla) */}
 
                 <div className="mt-5 mb-4">
-                <h5 className="titulo_formato_reporte text-primary mb-0">Segmentos</h5>
+                <h5 className="titulo_formato_reporte mb-0">Selección de segmentos</h5>
 
                     <div className="d-flex justify-content-end align-items-center m-3">
                        
