@@ -504,186 +504,209 @@ useEffect(() => {
             text-align: right;
         }
         
-        .periodo {
-            background-color: #f0f4ff;
-            padding: 6px 12px;
-            margin-bottom: 10px;
-            font-size: 13px;
-            border-left: 4px solid #0066cc;
-            color: #003366;
-        }
-        
-        .main-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        .left-column {
-            width: 240px;
-            vertical-align: top;
-            padding-right: 8px;
-        }
-        
-        .right-column {
-            vertical-align: top;
-        }
-        
-        .metric-box {
-            text-align: center;
-            border: 1px solid #0066cc;
-            width: 100%;
-        }
-         .metric-box_blue{
-            border: 1px solid #0066cc;
-            width: 100%;
-            height: 125px;
-            background-color: #D6E8F5;
-            margin-bottom: 6px;
-        }
-        .metric-box_dos{
-            text-align: center;
-            border: 1px solid #0066cc;
-            width: 100%;
-            margin-bottom: 6px;
-        }
-
-        
-        .metric-label {
-            color: #0066cc;
+        .title {
             font-size: 14px;
             font-weight: bold;
-            height: 50px;
-            padding: 8px;
-            background: #D6E8F5;
-           border: 1px solid #0066cc;
-            width:50%;
+            color: #333;
+            text-align: right;
         }
         
-        .metric-value {
-            color: #0066cc;
-            font-size: 16px;
-            font-weight: bold;
-            text-align:center;
-             width:50%;
-             
-             
-        }
-               .metric-value_dos {
-            color: #0066cc;
-            font-size: 20px;
-            font-weight: bold;
-            text-align:center;
-             width:100%;
-        }
-        
-        .section-title {
-            color: #0066cc;
-            padding: 6px 10px;
-            font-weight: bold;
-            border-bottom: 1px solid #0066cc;;
-            text-align: rigth;
-            margin-bottom: 6px;
-            font-size: 11px;
-        }
-        .section-title_blue{
-           border: 1px solid #608BC9;
-            color:#3367B8 ;
-            padding: 6px 10px;
-            font-weight: bold;
-            font-size: 11px;
-            text-align: center;
-        }
-        
-        .info-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 10px;
-        }
-        
-        .info-table td {
-            padding: 6px;
-            border-bottom: 1px solid #ddd;
-            font-size: 10px;
-        }
-        
-        .info-table td:first-child {
-            width: 180px;
-        }
-        
-        .segments-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 10px;
-        }
-        
-        .segments-table th {
-            padding: 5px;
-            border-bottom: 1px solid #0066cc;
-             border-top: 1px solid #0066cc;
-            font-size: 10px;
-            text-align: center;
-        }
-        
-        .segments-table td {
-            padding: 4px;
-            border-buttom: 1px solid #ddd;
-             border-top: 1px solid #ddd;
-            font-size: 10px;
-            text-align: center;
-        }
-        
-        .segments-table td:first-child {
-            text-align: left;
-        }
-        .subject-from{
-            padding: 1rem;
-            border: 1px solid #ddd;
+        .periodo {
+            background-color: #E8F4FD;
+            padding: 8px 12px;
+            margin-bottom: 15px;
             font-size: 12px;
-            text-align: center;
+            border-left: 4px solid #4A90E2;
+            color: #333;
         }
         
-        .art-box {
-            border: 1px solid #0066cc;
-            padding: 6px;
-            background: white;
+        /* Sección superior - Datos de la campaña */
+        .seccion-titulo {
+            background-color: #E8F4FD;
+            color: #4A90E2;
+            font-weight: bold;
+            font-size: 12px;
+            padding: 8px;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        
+        .tabla-datos {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        
+        .correos-enviados-box {
+            width: 200px;
+            vertical-align: top;
+            padding-right: 10px;
+        }
+        
+        .correos-box {
+            background-color: #D6E8F5;
+            border: 1px solid #4A90E2;
+            text-align: center;
+            padding: 20px;
+            height: 180px;
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+            justify-content: center;
+
+        }
+        
+        .correos-label {
+            color: #4A90E2;
+            font-size: 12px;
+            font-weight: bold;
             margin-bottom: 10px;
-            display: flex; 
+        }
+        
+        .correos-valor {
+            color: #4A90E2;
+            font-size: 32px;
+            font-weight: bold;
+        }
+        
+        .datos-campana-col {
+            vertical-align: top;
+        }
+        
+        .dato-row {
+            margin-bottom: 16px;
+            height: 90px;
+        }
+        
+        .dato-label {
+            color: #4A90E2;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 5px 8px;
+            border-bottom: 1px solid #4A90E2;
+            margin-bottom: 5px;
+        }
+        
+        .dato-valor {
+            font-size: 14px;
+            padding: 5px 8px;
+            border-bottom: 1px solid #ddd;
+            border-top: none;
+            height: 75px;
+        }
+        
+        .arte-box {
+            width: 200px;
+            vertical-align: top;
+            padding-left: 10px;
+        }
+        
+        .arte-container {
+            border: 1px solid #4A90E2;
+            padding: 8px;
+            text-align: center;
+            height: 200px;
+             width: 200px;
+            display: flex;
             align-items: center;
             justify-content: center;
         }
         
-        .art-box img {
+        .arte-container img {
             max-width: 100%;
-                    height: auto;
-                    max-height: 120px;
+            max-height: 160px;
         }
         
-        .subject-box {
-            background: #e3f2fd;
-            padding: 6px;
-            border: 1px solid #0066cc;
-            margin-top: 10px;
+        /* Objetivos de la campaña - Métricas horizontales */
+        .metricas-tabla {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 4px;
         }
         
-        .subject-title {
-            color: #0066cc;
-            font-weight: bold;
-            margin-bottom: 6px;
+        .metrica-cell {
+            width: 20%;
             text-align: center;
-            font-size: 11px;
+            vertical-align: top;
         }
         
-        .chart-container {
-            margin-top: 10px;
-            border: 1px solid #ddd;
+        .metrica-box {
+            background-color: #E8F4FD;
+            margin: 0 4px;
+        }
+        
+        .metrica-header {
+            color: #4A90E2;
+            font-size: 12px;
+            font-weight: bold;
             padding: 8px;
+            background-color: #E8F4FD;
+            border-bottom: 1px solid #4A90E2;
         }
         
-        .chart-container img {
-           width: 100%;
-                    height: auto;
-                    max-height: 150px;
-                    object-fit: contain;
+        .metrica-valor {
+            color: #4A90E2;
+            font-size: 18px;
+            font-weight: bold;
+            padding: 12px;
+            background-color: white;
+        }
+        
+        /* Sección de segmentos */
+        .tabla-segmentos-completa {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .segmentos-izq {
+            width: 50%;
+            vertical-align: top;
+            padding-right: 10px;
+        }
+        
+        .segmentos-der {
+            width: 50%;
+            vertical-align: top;
+            padding-left: 10px;
+        }
+        
+        .tabla-segmentos {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .tabla-segmentos th {
+            background-color: #E8F4FD;
+            color: #4A90E2;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 6px 4px;
+            border: 1px solid #4A90E2;
+            text-align: center;
+        }
+        
+        .tabla-segmentos td {
+            font-size: 10px;
+            padding: 6px 4px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+        
+        .tabla-segmentos td:first-child {
+            text-align: left;
+            padding-left: 8px;
+        }
+        
+        .grafica-container {
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .grafica-container img {
+            max-width: 100%;
+            max-height: 100%;
         }
             
                 </style>
@@ -701,175 +724,136 @@ useEffect(() => {
         
         <!-- Periodo -->
             <div class="periodo">Periodo: ${formData.periodo || 'Sin periodo'}</div>
-        
-        <!-- Main Layout Table -->
-        <table class="main-table">
-            <tr>
-                <!-- Left Column -->
-                <td class="left-column">
-                    <!-- Correos enviados -->
-                    <div class="section-title">Correos enviados</div>
-                    <table class="metric-box_blue">
-                        <tr>
-                            <td>
-                                <div class="metric-value_dos">${formData.correosEnviados || ''}</div>
-                            </td>
-                        </tr>
-                    </table>
-                    
-                    <!-- Métricas Section -->
-                    <div class="section-title">Métricas</div>
-                    
-                    
-                    <table class="metric-box">
-                        <tr>
-                            <td class="metric-label">
-                                Aperturas
-                            </td>
-                           <td class="metric-value" >
-                               ${metricas.aperturas || ''}
-                            </td>
-                        </tr>
-                    </table>
-                    
-                    <table class="metric-box_dos">
-                        <tr>
-                           <td class="metric-label">
-                                %Open
-                            </td>
-                           <td class="metric-value" >
-                             ${metricas.porcentajeOpen || ''}
-                            </td>
-                        </tr>
-                    </table>
-                     <table class="metric-box">
-                        <tr>
-                           <td class="metric-label">
-                                Clic
-                            </td>
-                           <td class="metric-value" >
-                            ${metricas.clic || ''}
-                            </td>
-                        </tr>
-                    </table>
-                    
-                    <table class="metric-box">
-                        <tr>
-                            <td class="metric-label">
-                                CTR
-                            </td>
-                           <td class="metric-value" >
-                           ${metricas.ctr || ''}
-                            </td>
-                        </tr>
-                    </table>
 
-                    <table class="metric-box">
-                        <tr>
-                            <td class="metric-label">
-                              CTOR
-                            </td>
-                           <td class="metric-value" >
-                           ${metricas.ctor || ''}
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-
-                                    <!-- Subject -->
-<div>
-                        <div class="subject-box">
-                        <div class="subject-title">Subject</div>
-                    </div>
-                     <div class="subject-from"  style="text-align: center;">${formData.subject || ''}</div>
-
-</div>
-                    
-                </td>
-                 
-                
-                <!-- Right Column -->
-                <td class="right-column">
-                    <!-- Nombre Campaña y Último envío -->
-                    <table style="width: 100%;">
-                        <tr>
-                            <td style="width: 60%; vertical-align: top;">
-                                <table class="info-table">
-                                    <tr>
-                                        <td>
-                                          <div class="section-title">Nombre Campaña</div>
-                                             <div>${formData.nombreCampana || ''}</div>
-                                        </td>
-                                        
-                                    </tr>
-                                </table>
-                                
-                                <table class="info-table">
-                                    <tr>
-                                       <td> 
-                                          <div class="section-title">Último envío</div>
-                                             <div>${formData.ultimoEnvio || ''}</div>
-                                        </td>
-                                    </tr>
-                                </table>
-                                <table class="info-table">
-                                  <tr>
-                                   <td> 
-                                    ${formData.preheader ? `
-                    <!-- Preheader -->
-                            <div class="section-title">Preheader</div>
-                        <div style="text-align: center;">${formData.preheader}</div>
-          
-                    ` : ''}  
-                                   </td>
-                                  </tr>
-                                </table>
-
-
-                            </td>
-                            <td style="width: 40%; vertical-align: top; padding-left: 8px;">
-                                <!-- Arte -->
-                                <div class="section-title">Arte</div>
-                                <div class="art-box">
-                                    ${formData.miniatura ? `<img src="${formData.miniatura}" alt="Arte de campaña">` : '<div style="height: 200px; background: #f5f5f5; display: flex; align-items: center; justify-content: center; color: #999;">Sin imagen</div>'}
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
-                    
-                    <!-- Segmentos Table -->
-                    <div class="section-title">Segmentos</div>
-                    <table class="segments-table">
-                        <thead>
-                            <tr>
-                                <th style="text-align: left;">Especialidad</th>
-                                <th>#Usuarios</th>
-                                <th>#Aperturas</th>
-                                <th>%Open</th>
-                                <th>Clics</th>
-                                <th>CTR</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${segmentosTableRows}
-                        </tbody>
-                    </table>
-                    
-                    <!-- Gráfica de Segmentos enviados -->
-                    ${chartImageBase64 ? `
-                        <div class="chart-container">
-                            <div class="section-title">Gráfica de segmentos enviados</div>
-                            <img src="${chartImageBase64}" alt="Gráfica de segmentos">
+        <!-- Datos de la campaña -->
+        <div class="seccion-titulo">Datos de la campaña</div>
+        <table class="tabla-datos">
+        <tr>
+        <!-- Correos enviados -->
+                    <td class="correos-enviados-box">
+                    	  <div class="dato-label" style="margin-bottom: 5px;">Correos enviados</div>
+                        <div class="correos-box">
+                            <div class="correos-valor">${formData.correosEnviados || ''}</div>
                         </div>
-                    
-                    ` : ''}      
-                    
-                    
-                </td>
-            </tr>
+                    </td>
+                    <!-- Datos principales en 2 columnas -->
+
+ <td class="datos-campana-col">
+ <table style="width: 100%; border-collapse: collapse;">
+ <tr>
+    <!-- Columna izquierda -->
+    <td style="width: 50%; vertical-align: top; padding-right: 5px;">
+                                    <div class="dato-row">
+                                        <div class="dato-label">Nombre Campaña</div>
+                                        <div class="dato-valor">${formData.nombreCampana || ''}</div>
+                                    </div>
+                                    
+                                    <div class="dato-row">
+                                        <div class="dato-label">Último envío</div>
+                                        <div class="dato-valor">${formData.ultimoEnvio || ''}</div>
+                                    </div>
+                                </td>
+
+    <!-- Columna derecha -->
+      <td style="width: 50%; vertical-align: top; padding-left: 5px;">
+      <div class="dato-row">
+          <div class="dato-label">Preheader</div>
+            <div class="dato-valor">${formData.preheader || ''}</div>
+      </div>
+      <div class="dato-row">
+                                        <div class="dato-label">Subject</div>
+                                        <div class="dato-valor">${formData.preheader}</div>
+                                    </div>
+      
+      </td>     
+      <!-- Arte -->
+                    <td class="arte-box">
+                        <div class="dato-label" style="margin-bottom: 5px;">Arte</div>
+                        <div class="arte-container">
+                              ${formData.miniatura ? `<img src="${formData.miniatura}" alt="Arte de campaña">` : '<div style="height: 200px; background: #f5f5f5; display: flex; align-items: center; justify-content: center; color: #999;">Sin imagen</div>'}
+                        </div>
+                    </td>
+      
+ </tr>
+ </table>
+ 
+ </td>
+        </tr>
         </table>
-            </div>
-            </div>
+        <div class="seccion-titulo">Objetivos de la campaña</div>
+        <table class="metricas-tabla">
+                <tr>
+                    <td class="metrica-cell">
+                        <div class="metrica-box">
+                            <div class="metrica-header">Aperturas</div>
+                            <div class="metrica-valor">${metricas.aperturas || ''}</div>
+                        </div>
+                    </td>
+                    <td class="metrica-cell">
+                        <div class="metrica-box">
+                            <div class="metrica-header">%Open</div>
+                            <div class="metrica-valor">${metricas.porcentajeOpen || ''}</div>
+                        </div>
+                    </td>
+                    <td class="metrica-cell">
+                        <div class="metrica-box">
+                            <div class="metrica-header">Clic</div>
+                            <div class="metrica-valor">${metricas.clic || ''}</div>
+                        </div>
+                    </td>
+                    <td class="metrica-cell">
+                        <div class="metrica-box">
+                            <div class="metrica-header">CTR</div>
+                            <div class="metrica-valor"> ${metricas.ctr || ''}</div>
+                        </div>
+                    </td>
+                    <td class="metrica-cell">
+                        <div class="metrica-box">
+                            <div class="metrica-header">CTOR</div>
+                            <div class="metrica-valor">${metricas.ctor || ''}</div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+<div class="seccion-titulo">Selección de segmentos</div>
+<table class="tabla-segmentos-completa">
+                <tr>
+                    <!-- Tabla de segmentos -->
+                    <td class="segmentos-izq">
+                        <div class="dato-label" style="margin-bottom: 5px;">Segmentos</div>
+                        <table class="tabla-segmentos">
+                            <thead>
+                                <tr>
+                                    <th>Especialidad</th>
+                                    <th>#Usuarios</th>
+                                    <th>#Aperturas</th>
+                                    <th>%Open</th>
+                                    <th>Clics</th>
+                                    <th>CTR</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                  ${segmentosTableRows}
+                            </tbody>
+                        </table>
+                    </td>
+                    
+                    <!-- Gráfica -->
+                    <td class="segmentos-der">
+                        <div class="dato-label" style="margin-bottom: 5px;">Gráfica de segmentos enviados</div>
+                        <div class="grafica-container">
+                           ${chartImageBase64 ? `
+                    <div class="grafica-container">
+                        <img src="${chartImageBase64}" alt="Gráfica de segmentos">
+                    </div>
+                    ` : '<div class="grafica-container" style="color: #999;">Sin gráfica</div>'}
+                        </div>
+                    </td>
+                </tr>
+            </table>
+ </div>
+    </div>
+       
            `; // (el que ya tienes, no lo toques)
     
            
