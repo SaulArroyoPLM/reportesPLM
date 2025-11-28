@@ -10,11 +10,27 @@ import { Container, Row, Col, Button, Modal } from 'react-bootstrap';
 function Home() {
     const navigate = useNavigate(); // 👈 Hook para navegar
   const [showOptionsModal, setShowOptionsModal] = useState(false);
+  const [showBannerModal, setShowBannerModal] = useState(false);
 
-  const handleBannerClick = () => {
-    console.log('Generar reporte de Banner');
-    // Aquí tu lógica para el banner
-  };
+ const handleBannerClick = () => {
+  console.log('Generar reporte de Banner');
+  setShowBannerModal(true);  // 👈 ABRE EL MODAL
+};
+
+const handleFormatoBanner = () => {
+  console.log("Formato Banner seleccionado");
+  setShowBannerModal(false);
+  navigate('/formato-banner');
+};
+
+const handleSubirBanner = () => {
+  console.log("Subir Banner seleccionado");
+  setShowBannerModal(false);
+  navigate('/subir-banner');
+};
+const handleCloseBanner = () => {
+  setShowBannerModal(false);
+};
 
   const handleMailingClick = () => {
     setShowOptionsModal(true);
@@ -152,6 +168,41 @@ function Home() {
       </Row>
     </Modal.Body>
    </Modal>
+{/* Modal de Opciones para Banner */}
+{/* Modal de Opciones para Banner */}
+<Modal 
+  show={showBannerModal} 
+  onHide={handleCloseBanner} 
+  centered 
+  size="lg"
+  className="options-modal"
+>
+  <Modal.Header closeButton />
+
+  <Modal.Body>
+    <Row className="g-4 px-3">
+      <Col md={6}>
+        <div className="btn-option text-center" onClick={handleFormatoBanner}>
+          <div className="btn-text" style={{ color: 'white' }}>
+            <img className="Docicono" src={Dociconodos} alt="Logo Banner" />
+            Crear reporte de Banner
+          </div>
+        </div>
+      </Col>
+
+      <Col md={6}>
+        <div className="btn-option_dos text-center" onClick={handleSubirBanner}>
+          <div className="btn-text" style={{ color: '#0d6efd' }}>
+            <img className="Docicono" src={Docicono} alt="Logo Banner" />
+            Subir Banner y generar reporte
+          </div>
+        </div>
+      </Col>
+    </Row>
+  </Modal.Body>
+</Modal>
+
+
    </>
   );
 }
