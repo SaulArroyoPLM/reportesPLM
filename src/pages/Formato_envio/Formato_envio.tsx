@@ -69,7 +69,9 @@ const handleFileChange = (e) => {
                 canvas.width = width;
                 canvas.height = height;
                 const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
+                if (ctx) {
+                    ctx.drawImage(img, 0, 0, width, height);
+                }
                 
                 // 👇 REDUCE MÁS LA CALIDAD
                 const compressedBase64 = canvas.toDataURL('image/jpeg', 0.3); // Antes: 0.7
@@ -104,10 +106,12 @@ const handleFileChange = (e) => {
             const file = e.dataTransfer.files[0];
             const reader = new FileReader();
             reader.onloadend = () => {
-                setFormData(prev => ({
-                    ...prev,
-                    miniatura: reader.result
-                }));
+                if (reader.result && typeof reader.result === 'string') {
+                    setFormData(prev => ({
+                        ...prev,
+                        miniatura: reader.result as string
+                    }));
+                }
             };
             reader.readAsDataURL(file);
         }
@@ -136,175 +140,316 @@ const handleFileChange = (e) => {
         }).replace(/\//g, '/');
         
         // 👇 AQUÍ PEGAS TU BASE64 DE LA PLANTILLA
-        const plantillaBase64 = "data:image/png;base64,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AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADc0v8EGAAyBP5Vev7kbQAAAABJRU5ErkJggg==";
+        const plantillaBase64 = "data:image/png;base64,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AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC6n/wQYAAzyo53Fraa/AAAAAElFTkSuQmCC";
 
         const contenidoHTML = `
-<style>
-    .celda-larga {
-        word-wrap: break-word !important;
-        word-break: break-all !important;
-        overflow-wrap: anywhere !important;
-        hyphens: auto;
+ <style>
+     * { margin: 0; padding: 0; box-sizing: border-box; }
+        body, html { margin: 0; padding: 0; width: 297mm; height: 210mm; }
+                    
+                  .pagina { 
+            position: relative; 
+            width: 297mm; 
+            height: 210mm; 
+            background: white;
+        }
+
+      .fondo-plantilla {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
     }
-    table { 
-        table-layout: fixed; 
-        width: 100%; 
-        position: relative;
-        z-index: 2;
+                    
+.contenido-real {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      padding: 15mm 12mm;
+      box-sizing: border-box;
+      z-index: 2;
+      font-family: Arial, sans-serif;
     }
-    td { vertical-align: top; }
-    .plantilla-fondo {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: 1;
-    }
-     .contenido-wrapper {
-        width: 210mm;
-        min-height: 297mm;
-        max-height: 297mm;   /* 👈 evita que crezca */
-        overflow: hidden;    /* 👈 evita salto de página */
-    }
-    table, tr, td, img, div {
-        page-break-inside: avoid !important; /* 👈 evita cortes */
-    }
-</style>
-<div class="contenido-wrapper" style="width: 210mm; min-height: 285mm;">
-    <!-- IMAGEN DE FONDO (Tu plantilla con el logo) -->
-    <img src="${plantillaBase64}" class="plantilla-fondo" alt="Plantilla" />
-    
-    <!-- CONTENIDO QUE SE ESCRIBE ENCIMA -->
-    <div style="position: relative; z-index: 2; padding: 20px; padding-top: 100px;">
         
-        <!-- Fecha (si quieres que aparezca, ajusta la posición) -->
-        <div style="text-align: right; margin-bottom: 20px;">
-            <strong>Fecha:</strong> 21/Nov/2025
-        </div>
+        .header {
+            border-bottom: 2px solid #0066cc;
+            margin-bottom: 8px;
+            padding-bottom:8px;
+        }
+        
+        .header table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+            text-align: right;
+        }
+        
+        .periodo {
+            background-color: #E8F4FD;
+            padding: 8px 12px;
+            margin-bottom: 15px;
+            font-size: 12px;
+            border-left: 4px solid #4A90E2;
+            color: #333;
+        }
+        
+        .seccion-titulo {
+            background-color: #E8F4FD;
+            color: #4A90E2;
+            font-weight: bold;
+            font-size: 12px;
+            padding: 8px;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        .seccion-subtitulo {
+    background-color: #E8F4FD;
+    color: #4A90E2;
+    font-weight: bold;
+    font-size: 11px;
+    padding: 6px 8px;
+    margin-bottom: 8px;
+    margin-top: 10px;
+}
 
-        <!-- Título -->
-        <div style="color: #3f3f3f; padding: 12px; text-align: center; font-weight: bold; font-size: 14px; margin-bottom: 20px;">
-            FORMATO PARA ENVÍO DE EMAILING
-        </div>
+.tabla-principal {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 15px;
+}
 
-        <!-- Tabla de campos -->
-        <table style="border-collapse: collapse; border: 1px solid #2c3e50;">
-            <tr>
-                <td style="color: #3f3f3f; padding: 8px; border: 1px solid #2c3e50; width: 35%; font-size: 11px;">
-                    Aplicación/ Campaña
-                </td>
-                <td class="celda-larga" style="background: white; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
-                    ${formData.aplicacion || ''}
-                </td>
-            </tr>
+
+        .tabla-datos {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        
+        .datos-campana-col {
+            vertical-align: top;
+        }
+        
+        .dato-row {
+            margin-bottom: 16px;
+            height: 90px;
+            display: flex;
+        }
+        
+        .dato-label {
+            color: #4A90E2;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 5px 8px;
+            border-bottom: 1px solid #4A90E2;
+            margin-bottom: 5px;
+        }
+        
+        .dato-valor {
+            font-size: 14px;
+            padding: 5px 8px;
+            border-bottom: 1px solid #ddd;
+            border-top: none;
+            height: 75px;
+        }
+        
+        .arte-box {
+            width: 200px;
+            vertical-align: top;
+            padding-left: 10px;
+        }
+        
+        .arte-container {
+            border: 1px solid #4A90E2;
+            padding: 8px;
+            text-align: center;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .arte-container img {
+            max-width: 100%;
+            max-height: 160px;
+        }
+        
+        .metricas-tabla {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 4px;
+        }
+        
+        .metrica-cell {
+            width: 33.33%;
+            text-align: center;
+            vertical-align: top;
+        }
+        
+        .metrica-box {
+            background-color: #E8F4FD;
+            margin: 0 4px;
+        }
+        
+        .metrica-header {
+            color: #4A90E2;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 8px;
+            background-color: #E8F4FD;
+            border-bottom: 1px solid #4A90E2;
+        }
+        
+        .metrica-valor {
+            color: #4A90E2;
+            font-size: 18px;
+            font-weight: bold;
+            padding: 12px;
+            background-color: white;
+        }
+</style>
             
-            <tr>
-                <td style="color: #3f3f3f; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
-                    Laboratorio/cliente:
+ <div class="pagina">
+<img src="${plantillaBase64}" class="fondo-plantilla" />
+ <div class="contenido-real">
+ <!-- Header -->
+        <div class="header">
+            <table>
+                <tbody><tr>
+                   <td class="title">Fecha: ${fechaActual}</td>
+                </tr>
+            </tbody></table>
+        </div>
+        
+        <!-- Periodo -->
+
+        <!-- Datos de la campaña -->
+        <div class="seccion-titulo">FORMATO PARA ENVÍO DE EMAILING</div>
+
+        <!-- Tabla principal de datos -->
+        <table class="tabla-principal" style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+            <tbody><tr>
+                <!-- Columna izquierda: Datos del banner -->
+                <td style="width: 75%; vertical-align: top; padding-right: 10px;">
+                    <!-- Tipo de banner -->
+                    <div class="dato-row" style="width: 100%;">
+                        <div class="tipoBanner" style="margin-right: 10px;width: 33.33%;  ">
+                            <div class="dato-label">Aplicación/ Campaña</div>
+                        <div class="dato-valor">${formData.aplicacion || ''}</div>
+                        </div>
+                       <div class="tipoBanner" style="margin-right: 10px;width: 33.33%;  ">
+                          <div class="dato-label">Laboratorio/cliente:</div>
+                        <div class="dato-valor">${formData.laboratorio || ''}</div>
+                      </div>
+                       <div class="tipoBanner" style="width: 33.33%;">
+                          <div class="dato-label">Ruta arte:</div>
+                        <div class="dato-valor"> ${formData.rutaArte}</div>
+                      </div>
+                    </div>
+
+                    <!-- Vigencia (título de sección) -->
+
+                    <!-- Inicio -->
+                     <div class="dato-row" style="width: 100%;">
+
+                         <div class="tipoBanner" style="margin-right: 10px;width: 50%;  ">
+                        <div class="dato-label">Segmento a dirigir:</div>
+                        <div class="dato-valor">${Array.isArray(formData.segmento) ? formData.segmento.join(', ') : (formData.segmento || '')}</div>
+                    </div>
+                   <div class="tipoBanner" style="width: 50%;">
+                        <div class="dato-label">Periodicidad:</div>
+                        <div class="dato-valor">${formData.periodicidad || ''}</div>
+                        </div>
+                    </div>
+                     <div class="dato-row" style="width: 100%;">
+                    <div class="tipoBanner" style="width: 100%;">
+                        <div class="dato-label">Subject:</div>
+                        <div class="dato-valor">${formData.subject || ''}</div>
+                        </div>
+                    </div>
                 </td>
-                <td class="celda-larga" style="background: white; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
-                    ${formData.laboratorio || ''}
-                </td>
-            </tr>
-            
-            <tr>
-                <td style="color: #3f3f3f; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
-                    Ruta arte:
-                </td>
-                <td class="celda-larga" style="background: white; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
-                   <a href="${formData.rutaArte}" target="_blank" style="color:#007bff; text-decoration: underline;">
-        ${formData.rutaArte}
-    </a>
-                </td>
-            </tr>
-            
-            <tr>
-                <td style="color: #3f3f3f; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
-                    Segmento a dirigir:
-                </td>
-                <td class="celda-larga" style="background: white; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
-                    ${formData.segmento || ''}
-                </td>
-            </tr>
-            
-            <tr>
-                <td style="color: #3f3f3f; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
-                    Periodicidad:
-                </td>
-                <td class="celda-larga" style="background: white; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
-                    ${formData.periodicidad || ''}
-                </td>
-            </tr>
-            
-            <tr>
-                <td style="color: #3f3f3f; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
-                    Subject:
-                </td>
-                <td class="celda-larga" style="background: white; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
-                    ${formData.subject || ''}
-                </td>
-            </tr>
-            
-            <tr>
-                <td style="color: #3f3f3f; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
-                    Call to action:
-                </td>
-                <td class="celda-larga" style="background: white; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
-                    ${formData.callToAction || ''}
-                </td>
-            </tr>
-            
-            <tr>
-                <td style="color: #3f3f3f; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
-                    Envio de campaña:
-                </td>
-                <td class="celda-larga" style="background: white; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
-                    ${formData.numeroEnvios || ''} ${formData.fechasPropuestas ? '/ ' + formData.fechasPropuestas : ''}
-                </td>
-            </tr>
-            
-            <tr>
-                <td style="color: #3f3f3f; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
-                    Correos clientes:
-                </td>
-                <td class="celda-larga" style="background: white; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
-                    ${formData.correosClientes || ''}
+
+                <!-- Columna derecha: Arte -->
+                <td style="width: 35%; vertical-align: top; padding-left: 10px;">
+                    <div class="dato-label" style="margin-bottom: 10px;">Miniatura de imagen:</div>
+                    <div class="arte-container">
+                        ${formData.miniatura ? 
+                            `<img src="${formData.miniatura}" alt="Arte de mailing" style="max-width: 100%; max-height: 160px; object-fit: contain; border: 1px solid #ddd;">` : 
+                            '<div style="height: 200px; background: #f5f5f5; display: flex; align-items: center; justify-content: center; color: #999; border: 1px solid #ddd;">Sin imagen</div>'
+                        }
+                    </div>
                 </td>
             </tr>
-            
-            <tr>
-                <td style="color: #3f3f3f; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
-                    Comentarios<br>adicionales
+        </tbody></table>
+ 
+ 
+        
+        
+        <div class="seccion-titulo">Objetivos del Banner</div>
+        <table class="metricas-tabla" style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+            <tbody><tr>
+                <td class="metrica-cell" style="width: 33.33%; padding: 5px;">
+                    <div class="metrica-box">
+                        <div class="metrica-header">Call to action:</div>
+                        <div class="metrica-valor">${formData.callToAction || ''}</div>
+                    </div>
                 </td>
-                <td class="celda-larga" style="background: white; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
-                    ${formData.comentarios || ''}
+                <td class="metrica-cell" style="width: 33.33%; padding: 5px;">
+                    <div class="metrica-box">
+                        <div class="metrica-header">Envio de campaña:</div>
+                        <div class="metrica-valor"> ${formData.numeroEnvios || ''} ${formData.fechasPropuestas ? '/ ' + formData.fechasPropuestas : ''}</div>
+                    </div>
                 </td>
             </tr>
-            
             <tr>
-                <td style="color: #3f3f3f; padding: 8px; border: 1px solid #2c3e50; font-size: 11px;">
-                    Miniatura de imagen:
+                 <td class="metrica-cell" style="width: 50%; padding: 5px;">
+                    <div class="metrica-box">
+                        <div class="metrica-header">Correos clientes:</div>
+                        <div class="metrica-valor">${Array.isArray(formData.correosClientes) ? formData.correosClientes.join(', ') : (formData.correosClientes || '')}</div>
+                    </div>
                 </td>
-                <td class="celda-larga" style="background: white; padding: 8px; border: 1px solid #2c3e50;">
-                    ${formData.miniatura ? `<img src="${formData.miniatura}" style="max-width: 200px; max-height: 150px; display: block;" />` : ''}
+                <td class="metrica-cell" style="width: 50%; padding: 5px;">
+                    <div class="metrica-box">
+                        <div class="metrica-header">Comentarios<br>adicionales</div>
+                        <div class="metrica-valor">${formData.comentarios || ''}</div>
+                    </div>
                 </td>
             </tr>
-        </table>
-    </div>
+        </tbody></table>
+ </div>
 </div>
+
 `;
 
         const element = document.createElement('div');
 element.innerHTML = contenidoHTML;
 document.body.appendChild(element);
 
-        const opt = {
+const opt = {
     margin: 0,
-    filename: `formato_mailing_${Date.now()}.pdf`,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true, logging: false },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    filename: `reporte_banner_${fechaActual.replace(/\//g, '-')}.pdf`,
+    image: { type: 'jpeg' as const, quality: 0.98 },
+    html2canvas: {
+        scale: 2,
+        useCORS: true,
+        letterRendering: true,
+        allowTaint: false,
+        backgroundColor: '#ffffff',
+        logging: false,
+        windowWidth: 1122,
+        windowHeight: 794
+    },
+    jsPDF: {
+        unit: 'mm',
+        format: [297, 210] as [number, number],
+        orientation: 'landscape' as const
+    }
 };
 
         // Esto genera SOLO UNA HOJA
@@ -381,16 +526,18 @@ document.body.appendChild(element);
             aplicacion: '',
             laboratorio: '',
             rutaArte: '',
-            segmento: '',
+            segmento: [],
             periodicidad: '',
             subject: '',
             callToAction: '',
             comentarios: '',
             fechasPropuestas: '',
             numeroEnvios: '',
-            correosClientes: '',
+            correosClientes: [],
             miniatura: null
         });
+        setSegmentos([]);
+        setEmailsClientes([]);
         setMensaje({ tipo: '', texto: '' });
     };
 
@@ -493,6 +640,7 @@ document.body.appendChild(element);
             }}
             placeholder="Ej: Medicina general, Enfermería..."
             badgeColor="info"
+            validate={(value) => value.trim().length > 0}
         />
     </Form.Group>
 </Col>

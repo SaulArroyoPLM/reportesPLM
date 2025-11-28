@@ -1,0 +1,101 @@
+/* Contenedor de información del banner */
+.banner-info-container {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    background-color: #f8f9fa;
+    border-left: 4px solid #28a745;
+    border-radius: 4px;
+    padding: 1rem;
+}
+
+.banner-info-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.banner-info-left {
+    flex: 1;
+}
+
+.banner-info-text {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    color: #333;
+    line-height: 1.5;
+}
+
+.banner-info-text:last-child {
+    margin-bottom: 0;
+}
+
+.banner-info-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+/* Badge para dimensiones */
+.dimension-badge {
+    display: inline-block;
+    background-color: #0d6efd;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-left: 0.5rem;
+}
+
+.dimension-badge:first-of-type {
+    margin-left: 0.5rem;
+}
+
+.banner-info-right {
+    display: flex;
+    align-items: center;
+}
+
+/* Botón Ver ubicación */
+.view-location-btn {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+    border-radius: 6px;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    white-space: nowrap;
+}
+
+.view-location-btn:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
+    color: white;
+}
+
+.view-location-btn:focus {
+    background-color: #5a6268;
+    border-color: #545b62;
+    color: white;
+    box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.5);
+}
+
+.banner_plantillas{
+    border-top: 1px solid #3f3f3f;
+    margin: 1rem 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .banner-info-content {
+        flex-direction: column;
+    }
+    
+    .banner-info-right {
+        width: 100%;
+        justify-content: flex-start;
+    }
+}
+

@@ -5,6 +5,7 @@ import Home from './pages/Home/Home.jsx';
 import FormatoEnvio from './pages/Formato_envio/Formato_envio.tsx';
 import FormatoReporte from './pages/Formato_reporte/Formato_reporte.tsx'
 import FormatoBanner from './pages/Formato_banner/fomato_banner.jsx';
+import FormatoBanner_reporte from './pages/Formato_banner_reporte/Formato_banner_reporte.jsx';
 import './App.css'
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
          <Route path="/formato-envio" element={<FormatoEnvio />} />
          <Route path="/formato-reporte" element={<FormatoReporte />} />
          <Route path="/formato-banner" element={<FormatoBanner />} />
+         <Route path="/subir-banner" element={<FormatoBanner_reporte />} />
         </Routes>
         <Footer />
       </>
