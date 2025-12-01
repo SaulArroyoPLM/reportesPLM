@@ -757,13 +757,13 @@ function FormatoReporte() {
     <!-- Columna derecha -->
       <td style="width: 50%; vertical-align: top; padding-left: 5px;">
       <div class="dato-row">
-          <div class="dato-label">Preheader</div>
-            <div class="dato-valor">${formData.preheader || ''}</div>
-      </div>
-      <div class="dato-row">
-                                        <div class="dato-label">Subject</div>
-                                        <div class="dato-valor">${formData.subject || ''}</div>
-                                    </div>
+        <div class="dato-label">Preheader</div>
+        <div class="dato-valor">${formData.preheader || ''}</div>
+    </div>
+     <div class="dato-row">
+        <div class="dato-label">Subject</div>
+        <div class="dato-valor">${formData.subject || ''}</div>
+    </div>
       
       </td>     
       <!-- Arte -->
