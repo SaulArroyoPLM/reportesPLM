@@ -349,7 +349,7 @@ const handleFileChange = (e) => {
                       </div>
                        <div class="tipoBanner" style="width: 33.33%;">
                           <div class="dato-label">Ruta arte:</div>
-                        <div class="dato-valor"> ${formData.rutaArte}</div>
+                        <div style="width: 33.33%;" class="dato-valor"> ${formData.rutaArte}</div>
                       </div>
                     </div>
 
@@ -403,7 +403,8 @@ const handleFileChange = (e) => {
                 <td class="metrica-cell" style="width: 33.33%; padding: 5px;">
                     <div class="metrica-box">
                         <div class="metrica-header">Envio de campaña:</div>
-                        <div class="metrica-valor"> ${formData.numeroEnvios || ''} ${formData.fechasPropuestas ? '/ ' + formData.fechasPropuestas : ''}</div>
+                        <div class="metrica-valor"> Envio de campaña: ${formData.numeroEnvios || ''} </div>
+                        <div class="metrica-valor"> Fechas de envío: ${formData.fechasPropuestas ? '/ ' + formData.fechasPropuestas : ''}</div>
                     </div>
                 </td>
             </tr>
@@ -416,7 +417,7 @@ const handleFileChange = (e) => {
                 </td>
                 <td class="metrica-cell" style="width: 50%; padding: 5px;">
                     <div class="metrica-box">
-                        <div class="metrica-header">Comentarios<br>adicionales</div>
+                        <div class="metrica-header">Comentarios adicionales</div>
                         <div class="metrica-valor">${formData.comentarios || ''}</div>
                     </div>
                 </td>

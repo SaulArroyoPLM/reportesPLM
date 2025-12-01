@@ -79,10 +79,10 @@ const handleCloseBanner = () => {
         <Col md={6} className="mx-auto border p-3 mt-4" style={{maxWidth:'500px'}}>
             <div className="mx-auto w-100">
                 <h2 className="colorsiete backgroundDiez fw-bold text-center borderTop border-bottom p-3">
-                    Generar reporte de Banner
+                  Banner
                 </h2>
                 <p className="colorUno fw-normal text-center pt-2">
-                     Registra un banner nuevo y genera un reporte automático con toda la información capturada.
+                     Registra un banner nuevo o genera un reporte automático con toda la información capturada.
                 </p>
                 <Button 
                   variant="primary" 
@@ -97,10 +97,10 @@ const handleCloseBanner = () => {
         <Col md={6} className="mx-auto border p-3 mt-4" style={{maxWidth:'500px'}}>
             <div className="mx-auto w-100">
                 <h2 className="colorsiete backgroundDiez fw-bold text-center borderTop border-bottom p-3">
-                   Generar reporte de Mailing
+                   Mailing
                 </h2>
                 <p className="colorUno fw-normal text-center pt-2">
-                    Sube un mailing y obtén un reporte completo con los detalles de la campaña.
+                    Sube un mailing u obtén un reporte completo con los detalles de la campaña.
                 </p>
                 <Button 
                   variant="primary" 
