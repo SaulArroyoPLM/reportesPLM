@@ -67,7 +67,7 @@ function FormatoReporte() {
     // Referencias para las gráficas
     const chartUsuariosRef = useRef<HTMLCanvasElement | null>(null);
     const chartInstancesRef = useRef<{ usuarios?: ChartJS | null }>({});
-    
+
     // Función para limpiar la gráfica anterior
     const limpiarGrafica = useCallback(() => {
         if (chartInstancesRef.current.usuarios) {
@@ -79,32 +79,32 @@ function FormatoReporte() {
             chartInstancesRef.current.usuarios = null;
         }
     }, []);
-    
+
     // Función para crear la gráfica
     const crearGrafica = useCallback((segmentosConDatos: typeof segmentos) => {
         if (!chartUsuariosRef.current) return;
-        
+
         // Limpiar gráfica anterior SIEMPRE antes de crear una nueva
         limpiarGrafica();
-        
+
         // Pequeño delay para asegurar que el canvas esté completamente liberado
         setTimeout(() => {
             if (!chartUsuariosRef.current) return;
-            
+
             // Verificar que no haya una gráfica existente
             if (chartInstancesRef.current.usuarios) {
                 limpiarGrafica();
             }
-            
+
             // Preparar datos
             const labels = segmentosConDatos.map(s => s.especialidad);
             const usuarios = segmentosConDatos.map(s => parseInt(s.usuarios) || 0);
             const aperturas = segmentosConDatos.map(s => parseInt(s.aperturas) || 0); // ← NUEVO
-            
+
             // Obtener contexto
             const ctx = chartUsuariosRef.current.getContext('2d');
             if (!ctx) return;
-            
+
             // Crear gráfica
             try {
                 chartInstancesRef.current.usuarios = new ChartJS(ctx, {
@@ -133,18 +133,18 @@ function FormatoReporte() {
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: {
-                            legend: { 
+                            legend: {
                                 display: true,
                                 position: 'bottom'
                             },
-                            title: { 
-                                display: true, 
+                            title: {
+                                display: true,
                                 text: 'Segmentos enviados',
                                 font: { size: 14 }
                             }
                         },
                         scales: {
-                            x: { 
+                            x: {
                                 stacked: true,  // ← AGREGAR ESTO
                                 beginAtZero: true,
                                 grid: { display: true }
@@ -161,7 +161,7 @@ function FormatoReporte() {
             }
         }, 10);
     }, [limpiarGrafica]);
-    
+
     // Callback ref para cuando el canvas se monta (solo guarda la referencia)
     const canvasRefCallback = useCallback((canvas: HTMLCanvasElement | null) => {
         // Limpiar gráfica si el canvas se desmonta
@@ -177,9 +177,9 @@ function FormatoReporte() {
     // Función para crear/actualizar gráfica automáticamente cuando cambian los segmentos
     useEffect(() => {
         // Filtrar segmentos que tengan al menos especialidad y usuarios
-        const segmentosConDatos = segmentos.filter(s => 
-            s.especialidad && s.especialidad.trim() !== '' && 
-            s.usuarios && s.usuarios.trim() !== '' && 
+        const segmentosConDatos = segmentos.filter(s =>
+            s.especialidad && s.especialidad.trim() !== '' &&
+            s.usuarios && s.usuarios.trim() !== '' &&
             !isNaN(parseInt(s.usuarios))
         );
 
@@ -197,7 +197,7 @@ function FormatoReporte() {
             }
         }, 50);
 
-        
+
 
         // Cleanup: destruir gráfica al desmontar o cuando cambien los datos
         return () => {
@@ -207,53 +207,53 @@ function FormatoReporte() {
     }, [segmentos, crearGrafica, limpiarGrafica]);
 
     // NUEVO useEffect para calcular %Open automáticamente
-useEffect(() => {
-    if (formData.correosEnviados && metricas.aperturas) {
-        const porcentaje = (metricas.aperturas / formData.correosEnviados * 100).toFixed(2);
-        setMetricas(prev => ({
-            ...prev,
-            porcentajeOpen: porcentaje
-        }));
-    } else if (!formData.correosEnviados || !metricas.aperturas) {
-        setMetricas(prev => ({
-            ...prev,
-            porcentajeOpen: ''
-        }));
-    }
-}, [formData.correosEnviados, metricas.aperturas]);
-// useEffect para calcular CTR automáticamente
-// CTR = Clic / envíos * 100
-useEffect(() => {
-    if (formData.correosEnviados && metricas.clic) {
-        const ctrCalculado = (metricas.clic / formData.correosEnviados * 100).toFixed(2);
-        setMetricas(prev => ({
-            ...prev,
-            ctr: ctrCalculado
-        }));
-    } else if (!formData.correosEnviados || !metricas.clic) {
-        setMetricas(prev => ({
-            ...prev,
-            ctr: ''
-        }));
-    }
-}, [formData.correosEnviados, metricas.clic]);
+    useEffect(() => {
+        if (formData.correosEnviados && metricas.aperturas) {
+            const porcentaje = (metricas.aperturas / formData.correosEnviados * 100).toFixed(2);
+            setMetricas(prev => ({
+                ...prev,
+                porcentajeOpen: porcentaje
+            }));
+        } else if (!formData.correosEnviados || !metricas.aperturas) {
+            setMetricas(prev => ({
+                ...prev,
+                porcentajeOpen: ''
+            }));
+        }
+    }, [formData.correosEnviados, metricas.aperturas]);
+    // useEffect para calcular CTR automáticamente
+    // CTR = Clic / envíos * 100
+    useEffect(() => {
+        if (formData.correosEnviados && metricas.clic) {
+            const ctrCalculado = (metricas.clic / formData.correosEnviados * 100).toFixed(2);
+            setMetricas(prev => ({
+                ...prev,
+                ctr: ctrCalculado
+            }));
+        } else if (!formData.correosEnviados || !metricas.clic) {
+            setMetricas(prev => ({
+                ...prev,
+                ctr: ''
+            }));
+        }
+    }, [formData.correosEnviados, metricas.clic]);
 
-// useEffect para calcular CTOR automáticamente
-// CTOR = Clic / aperturas * 100
-useEffect(() => {
-    if (metricas.aperturas && metricas.clic) {
-        const ctorCalculado = (metricas.clic / metricas.aperturas * 100).toFixed(2);
-        setMetricas(prev => ({
-            ...prev,
-            ctor: ctorCalculado
-        }));
-    } else if (!metricas.aperturas || !metricas.clic) {
-        setMetricas(prev => ({
-            ...prev,
-            ctor: ''
-        }));
-    }
-}, [metricas.aperturas, metricas.clic]);
+    // useEffect para calcular CTOR automáticamente
+    // CTOR = Clic / aperturas * 100
+    useEffect(() => {
+        if (metricas.aperturas && metricas.clic) {
+            const ctorCalculado = (metricas.clic / metricas.aperturas * 100).toFixed(2);
+            setMetricas(prev => ({
+                ...prev,
+                ctor: ctorCalculado
+            }));
+        } else if (!metricas.aperturas || !metricas.clic) {
+            setMetricas(prev => ({
+                ...prev,
+                ctor: ''
+            }));
+        }
+    }, [metricas.aperturas, metricas.clic]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -281,10 +281,10 @@ useEffect(() => {
                     const canvas = document.createElement('canvas');
                     const MAX_WIDTH = 300;
                     const MAX_HEIGHT = 200;
-                    
+
                     let width = img.width;
                     let height = img.height;
-                    
+
                     if (width > height) {
                         if (width > MAX_WIDTH) {
                             height *= MAX_WIDTH / width;
@@ -296,16 +296,16 @@ useEffect(() => {
                             height = MAX_HEIGHT;
                         }
                     }
-                    
+
                     canvas.width = width;
                     canvas.height = height;
                     const ctx = canvas.getContext('2d');
                     if (ctx) {
                         ctx.drawImage(img, 0, 0, width, height);
                     }
-                    
+
                     const compressedBase64 = canvas.toDataURL('image/jpeg', 0.3);
-                    
+
                     setFormData(prev => ({
                         ...prev,
                         miniatura: compressedBase64
@@ -333,7 +333,7 @@ useEffect(() => {
         e.preventDefault();
         e.stopPropagation();
         setDragActive(false);
-        
+
         if (e.dataTransfer.files && e.dataTransfer.files[0]) {
             const file = e.dataTransfer.files[0];
             const reader = new FileReader();
@@ -359,7 +359,7 @@ useEffect(() => {
 
     // Funciones para manejar la tabla de segmentos
     const handleSegmentoChange = (id, campo, valor) => {
-        setSegmentos(prevSegmentos => 
+        setSegmentos(prevSegmentos =>
             prevSegmentos.map(segmento => {
                 if (segmento.id === id) {
                     // Actualizar el campo que cambió
@@ -367,7 +367,7 @@ useEffect(() => {
                         ...segmento,
                         [campo]: valor
                     };
-    
+
                     // Si el campo modificado afecta los cálculos, recalcular
                     if (campo === 'usuarios' || campo === 'aperturas' || campo === 'clics') {
                         const { porcentajeOpen, ctr } = calcularPorcentajesSegmento(segmentoActualizado);
@@ -377,7 +377,7 @@ useEffect(() => {
                             ctr
                         };
                     }
-    
+
                     return segmentoActualizado;
                 }
                 return segmento;
@@ -405,28 +405,28 @@ useEffect(() => {
     };
     const handleDownloadPDF = async () => {
         setLoadingPDF(true);
-    
+
         try {
             const html2pdf = (await import('html2pdf.js')).default;
-              // Usa la fecha real
-              const fechaActual = new Date().toLocaleDateString('es-MX', {
+            // Usa la fecha real
+            const fechaActual = new Date().toLocaleDateString('es-MX', {
                 day: '2-digit',
                 month: '2-digit',
                 year: 'numeric'
             }).replace(/\//g, '/');
 
-    // Base64 de la plantilla
-              const plantillaBase64 = "data:image/png;base64,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AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC6n/wQYAAzyo53Fraa/AAAAAElFTkSuQmCC";
+            // Base64 de la plantilla
+            const plantillaBase64 = "data:image/png;base64,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AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC6n/wQYAAzyo53Fraa/AAAAAElFTkSuQmCC";
             // --- 1. Capturar gráfica ---
             let chartImageBase64 = '';
-            const segmentosConDatos = segmentos.filter(s => 
-                s.especialidad && s.especialidad.trim() !== '' && 
-                s.usuarios && s.usuarios.trim() !== '' && 
+            const segmentosConDatos = segmentos.filter(s =>
+                s.especialidad && s.especialidad.trim() !== '' &&
+                s.usuarios && s.usuarios.trim() !== '' &&
                 !isNaN(parseInt(s.usuarios))
             );
             if (segmentosConDatos.length > 0 && chartUsuariosRef.current) {
                 await new Promise((resolve) => setTimeout(resolve, 500)); // Más tiempo
-                
+
                 try {
                     if (chartUsuariosRef.current.width > 0 && chartUsuariosRef.current.height > 0) {
                         chartImageBase64 = chartUsuariosRef.current.toDataURL("image/png", 1.0);
@@ -435,9 +435,9 @@ useEffect(() => {
                     console.warn("Error capturando gráfica:", error);
                 }
             }
-    
-            
-    
+
+
+
             // --- 2. Generar filas tabla ---
             const segmentosTableRows = segmentos.map(seg => `
                 <tr>
@@ -449,7 +449,7 @@ useEffect(() => {
                     <td style="padding: 6px; border-buttom: 1px solid #ddd; font-size: 11px; text-align: center;">${seg.ctr || '-'}</td>
                 </tr>
             `).join('');
-    
+
             // --- 3. Tu HTML completo (sin cambios, está perfecto) ---
             const contenidoHTML = `
               <style>
@@ -762,7 +762,7 @@ useEffect(() => {
       </div>
       <div class="dato-row">
                                         <div class="dato-label">Subject</div>
-                                        <div class="dato-valor">${formData.preheader}</div>
+                                        <div class="dato-valor">${formData.subject || ''}</div>
                                     </div>
       
       </td>     
@@ -855,37 +855,37 @@ useEffect(() => {
     </div>
        
            `; // (el que ya tienes, no lo toques)
-    
-           
-    
-    
-           
-           const opt = {
-            margin: 0,
-            filename: `reporte_emailing_${fechaActual.replace(/\//g, '-')}.pdf`,
-            image: { type: 'jpeg' as const, quality: 0.98 },
-            html2canvas: {
-                scale: 2,
-                useCORS: true,
-                letterRendering: true,
-                allowTaint: false,
-                backgroundColor: '#ffffff',
-                logging: false,
-                windowWidth: 1122, // 297mm * 3.78 (px por mm)
-                windowHeight: 794   // 210mm * 3.78
-            },
-            jsPDF: {
-                unit: 'mm',
-                format: [297, 210] as [number, number],
-                orientation: 'landscape' as const
-            }
-        };
 
-    
-          // --- 5. Generar PDF directamente ---
-          await html2pdf().set(opt).from(contenidoHTML).save();
 
-    
+
+
+
+            const opt = {
+                margin: 0,
+                filename: `reporte_emailing_${fechaActual.replace(/\//g, '-')}.pdf`,
+                image: { type: 'jpeg' as const, quality: 0.98 },
+                html2canvas: {
+                    scale: 2,
+                    useCORS: true,
+                    letterRendering: true,
+                    allowTaint: false,
+                    backgroundColor: '#ffffff',
+                    logging: false,
+                    windowWidth: 1122, // 297mm * 3.78 (px por mm)
+                    windowHeight: 794   // 210mm * 3.78
+                },
+                jsPDF: {
+                    unit: 'mm',
+                    format: [297, 210] as [number, number],
+                    orientation: 'landscape' as const
+                }
+            };
+
+
+            // --- 5. Generar PDF directamente ---
+            await html2pdf().set(opt).from(contenidoHTML).save();
+
+
             setMensaje({ tipo: 'success', texto: 'PDF generado perfectamente' });
         } catch (error) {
             console.error('Error generando PDF:', error);
@@ -897,7 +897,7 @@ useEffect(() => {
             setLoadingPDF(false);
         }
     };
-    
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -922,22 +922,22 @@ useEffect(() => {
             });
 
             if (response.ok) {
-                setMensaje({ 
-                    tipo: 'success', 
-                    texto: '✅ Reporte guardado exitosamente en Google Sheets' 
+                setMensaje({
+                    tipo: 'success',
+                    texto: '✅ Reporte guardado exitosamente en Google Sheets'
                 });
                 handleCancel();
             } else {
-                setMensaje({ 
-                    tipo: 'danger', 
-                    texto: '❌ Error al guardar. Intenta nuevamente.' 
+                setMensaje({
+                    tipo: 'danger',
+                    texto: '❌ Error al guardar. Intenta nuevamente.'
                 });
             }
         } catch (error) {
             console.error('Error:', error);
-            setMensaje({ 
-                tipo: 'danger', 
-                texto: '❌ Error de conexión con el servidor' 
+            setMensaje({
+                tipo: 'danger',
+                texto: '❌ Error de conexión con el servidor'
             });
         } finally {
             setLoading(false);
@@ -978,20 +978,20 @@ useEffect(() => {
         const usuarios = parseFloat(segmento.usuarios) || 0;
         const aperturas = parseFloat(segmento.aperturas) || 0;
         const clics = parseFloat(segmento.clics) || 0;
-    
+
         let porcentajeOpen = '';
         let ctr = '';
-    
+
         // Calcular %Open = aperturas / usuarios * 100
         if (usuarios > 0 && aperturas > 0) {
             porcentajeOpen = ((aperturas / usuarios) * 100).toFixed(2);
         }
-    
+
         // Calcular CTR = clics / usuarios * 100
         if (usuarios > 0 && clics > 0) {
             ctr = ((clics / usuarios) * 100).toFixed(2);
         }
-    
+
         return { porcentajeOpen, ctr };
     };
 
@@ -1010,24 +1010,24 @@ useEffect(() => {
                 </Col>
             </Row>
             <Row className="mt-4">
-                    <Col>
-                        <h5 className="titulo_formato_reporte  mb-3">Datos de la campaña</h5>
-                    </Col>
-                </Row>
+                <Col>
+                    <h5 className="titulo_formato_reporte  mb-3">Datos de la campaña</h5>
+                </Col>
+            </Row>
             <Row className="mb-4" >
-                            <Col sm={12}>
-                                <Form.Group className="mb-3">
-                                    <Form.Label>Periodo</Form.Label>
-                                    <Form.Control 
-                                        type="text"
-                                        name="periodo"
-                                        value={formData.periodo}
-                                        onChange={handleChange}
-                                        placeholder="Periodo de la campaña"
-                                    />
-                                </Form.Group>
-                            </Col>
-        </Row>
+                <Col sm={12}>
+                    <Form.Group className="mb-3">
+                        <Form.Label>Periodo</Form.Label>
+                        <Form.Control
+                            type="text"
+                            name="periodo"
+                            value={formData.periodo}
+                            onChange={handleChange}
+                            placeholder="Periodo de la campaña"
+                        />
+                    </Form.Group>
+                </Col>
+            </Row>
 
             {mensaje.texto && (
                 <Alert variant={mensaje.tipo} onClose={() => setMensaje({ tipo: '', texto: '' })} dismissible>
@@ -1037,7 +1037,7 @@ useEffect(() => {
 
             <Form onSubmit={handleSubmit}>
                 {/* Sección: Inicio */}
-                
+
 
                 <Row>
                     <Col md={6}>
@@ -1045,7 +1045,7 @@ useEffect(() => {
                             <Col sm={6}>
                                 <Form.Group className="mb-3">
                                     <Form.Label>Detalle de campañas</Form.Label>
-                                    <Form.Control 
+                                    <Form.Control
                                         type="text"
                                         name="detalleCampana"
                                         value={formData.detalleCampana}
@@ -1058,7 +1058,7 @@ useEffect(() => {
                             <Col sm={6}>
                                 <Form.Group className="mb-3">
                                     <Form.Label>Nombre de la campaña:</Form.Label>
-                                    <Form.Control 
+                                    <Form.Control
                                         type="text"
                                         name="nombreCampana"
                                         value={formData.nombreCampana}
@@ -1073,7 +1073,7 @@ useEffect(() => {
                             <Col sm={6}>
                                 <Form.Group className="mb-3">
                                     <Form.Label>Último Envío</Form.Label>
-                                    <Form.Control 
+                                    <Form.Control
                                         type="date"
                                         name="ultimoEnvio"
                                         value={formData.ultimoEnvio}
@@ -1085,7 +1085,7 @@ useEffect(() => {
                             <Col sm={6}>
                                 <Form.Group className="mb-3">
                                     <Form.Label>Correos enviados</Form.Label>
-                                    <Form.Control 
+                                    <Form.Control
                                         type="number"
                                         name="correosEnviados"
                                         value={formData.correosEnviados}
@@ -1100,7 +1100,7 @@ useEffect(() => {
                             <Col sm={6}>
                                 <Form.Group className="mb-3">
                                     <Form.Label>Subject</Form.Label>
-                                    <Form.Control 
+                                    <Form.Control
                                         as="textarea"
                                         rows={3}
                                         name="subject"
@@ -1113,7 +1113,7 @@ useEffect(() => {
                             <Col sm={6}>
                                 <Form.Group className="mb-3">
                                     <Form.Label>Preheader</Form.Label>
-                                    <Form.Control 
+                                    <Form.Control
                                         as="textarea"
                                         rows={3}
                                         name="preheader"
@@ -1128,9 +1128,9 @@ useEffect(() => {
 
                     <Col md={6}>
                         <Form.Label className="mb-2">Miniatura de imagen</Form.Label>
-                        <Card 
+                        <Card
                             className={`text-center p-4 ${dragActive ? 'border-primary bg-light' : ''}`}
-                            style={{ 
+                            style={{
                                 cursor: formData.miniatura ? 'default' : 'pointer',
                                 border: dragActive ? '2px dashed #0d6efd' : '2px dashed #dee2e6',
                                 minHeight: '300px',
@@ -1150,13 +1150,13 @@ useEffect(() => {
                                 {formData.miniatura ? (
                                     <div className="position-relative w-100 h-100 d-flex flex-column align-items-center justify-content-center">
                                         <div className="position-relative">
-                                            <img 
-                                                src={formData.miniatura} 
-                                                alt="Preview" 
+                                            <img
+                                                src={formData.miniatura}
+                                                alt="Preview"
                                                 className="img-fluid"
-                                                style={{ 
-                                                    maxWidth: '100%', 
-                                                    maxHeight: '240px', 
+                                                style={{
+                                                    maxWidth: '100%',
+                                                    maxHeight: '240px',
                                                     objectFit: 'contain',
                                                     borderRadius: '8px'
                                                 }}
@@ -1187,8 +1187,8 @@ useEffect(() => {
                                     </div>
                                 ) : (
                                     <div className="d-flex flex-column align-items-center justify-content-center h-100 py-4">
-                                        <FontAwesomeIcon 
-                                            icon={faUpload} 
+                                        <FontAwesomeIcon
+                                            icon={faUpload}
                                             className="text-primary mb-3"
                                             style={{ width: '60px', height: '60px' }}
                                         />
@@ -1232,7 +1232,7 @@ useEffect(() => {
                             <Form.Group className="mb-3">
                                 <Form.Label>Click</Form.Label>
                                 <Form.Control
-                                   type="number"
+                                    type="number"
                                     name="clic"
                                     value={metricas.clic}
                                     onChange={handleMetricasChange}
@@ -1243,102 +1243,102 @@ useEffect(() => {
 
 
                         <Col md={2}>
-    <Form.Group className="mb-3">
-        <Form.Label>%Open</Form.Label>
-        <div style={{ position: 'relative' }}>
-            <Form.Control
-                type="text"
-                name="porcentajeOpen"
-                value={metricas.porcentajeOpen}
-                readOnly
-                placeholder="0.00"
-                style={{ 
-                    backgroundColor: '#e9ecef',
-                    paddingRight: '30px'
-                }}
-            />
-            <span style={{
-                position: 'absolute',
-                right: '10px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                pointerEvents: 'none',
-                color: '#6c757d'
-            }}>
-                %
-            </span>
-        </div>
-    </Form.Group>
-</Col>
-                      
-<Col md={2}>
-    <Form.Group className="mb-3">
-        <Form.Label>CTR</Form.Label>
-        <div style={{ position: 'relative' }}>
-            <Form.Control
-                type="text"
-                name="ctr"
-                value={metricas.ctr}
-                readOnly
-                placeholder="0.00"
-                style={{ 
-                    backgroundColor: '#e9ecef',
-                    paddingRight: '30px'
-                }}
-            />
-            <span style={{
-                position: 'absolute',
-                right: '10px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                pointerEvents: 'none',
-                color: '#6c757d'
-            }}>
-                %
-            </span>
-        </div>
-    </Form.Group>
-</Col>
-<Col md={2}>
-    <Form.Group className="mb-3">
-        <Form.Label>CTOR entre aperturas</Form.Label>
-        <div style={{ position: 'relative' }}>
-            <Form.Control
-                type="text"
-                name="ctor"
-                value={metricas.ctor}
-                readOnly
-                placeholder="0.00"
-                style={{ 
-                    backgroundColor: '#e9ecef',
-                    paddingRight: '30px'
-                }}
-            />
-            <span style={{
-                position: 'absolute',
-                right: '10px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                pointerEvents: 'none',
-                color: '#6c757d'
-            }}>
-                %
-            </span>
-        </div>
-    </Form.Group>
-</Col>
+                            <Form.Group className="mb-3">
+                                <Form.Label>%Open</Form.Label>
+                                <div style={{ position: 'relative' }}>
+                                    <Form.Control
+                                        type="text"
+                                        name="porcentajeOpen"
+                                        value={metricas.porcentajeOpen}
+                                        readOnly
+                                        placeholder="0.00"
+                                        style={{
+                                            backgroundColor: '#e9ecef',
+                                            paddingRight: '30px'
+                                        }}
+                                    />
+                                    <span style={{
+                                        position: 'absolute',
+                                        right: '10px',
+                                        top: '50%',
+                                        transform: 'translateY(-50%)',
+                                        pointerEvents: 'none',
+                                        color: '#6c757d'
+                                    }}>
+                                        %
+                                    </span>
+                                </div>
+                            </Form.Group>
+                        </Col>
+
+                        <Col md={2}>
+                            <Form.Group className="mb-3">
+                                <Form.Label>CTR</Form.Label>
+                                <div style={{ position: 'relative' }}>
+                                    <Form.Control
+                                        type="text"
+                                        name="ctr"
+                                        value={metricas.ctr}
+                                        readOnly
+                                        placeholder="0.00"
+                                        style={{
+                                            backgroundColor: '#e9ecef',
+                                            paddingRight: '30px'
+                                        }}
+                                    />
+                                    <span style={{
+                                        position: 'absolute',
+                                        right: '10px',
+                                        top: '50%',
+                                        transform: 'translateY(-50%)',
+                                        pointerEvents: 'none',
+                                        color: '#6c757d'
+                                    }}>
+                                        %
+                                    </span>
+                                </div>
+                            </Form.Group>
+                        </Col>
+                        <Col md={2}>
+                            <Form.Group className="mb-3">
+                                <Form.Label>CTOR entre aperturas</Form.Label>
+                                <div style={{ position: 'relative' }}>
+                                    <Form.Control
+                                        type="text"
+                                        name="ctor"
+                                        value={metricas.ctor}
+                                        readOnly
+                                        placeholder="0.00"
+                                        style={{
+                                            backgroundColor: '#e9ecef',
+                                            paddingRight: '30px'
+                                        }}
+                                    />
+                                    <span style={{
+                                        position: 'absolute',
+                                        right: '10px',
+                                        top: '50%',
+                                        transform: 'translateY(-50%)',
+                                        pointerEvents: 'none',
+                                        color: '#6c757d'
+                                    }}>
+                                        %
+                                    </span>
+                                </div>
+                            </Form.Group>
+                        </Col>
                     </Row>
                 </div>
 
                 {/* Sección: Segmentos (Tabla) */}
 
                 <div className="mt-5 mb-4">
-                <h5 className="titulo_formato_reporte mb-0">Selección de segmentos</h5>
+                    <h5 className="titulo_formato_reporte mb-0">Selección de segmentos</h5>
 
                     <div className="d-flex justify-content-end align-items-center m-3">
-                       
-                        <Button 
-                            variant="success" 
+
+                        <Button
+                            variant="success"
                             size="sm"
                             onClick={agregarSegmento}
                         >
@@ -1400,58 +1400,58 @@ useEffect(() => {
                                             />
                                         </td>
                                         <td>
-    <div style={{ position: 'relative' }}>
-        <Form.Control
-            size="sm"
-            type="text"
-            value={segmento.porcentajeOpen}
-            readOnly
-            placeholder="0.00"
-            style={{ 
-                backgroundColor: '#e9ecef',
-                paddingRight: '30px'
-            }}
-        />
-        <span style={{
-            position: 'absolute',
-            right: '10px',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            pointerEvents: 'none',
-            color: '#6c757d',
-            fontSize: '0.875rem'
-        }}>
-            %
-        </span>
-    </div>
-</td>
-                                        
-<td>
-    <div style={{ position: 'relative' }}>
-        <Form.Control
-            size="sm"
-            type="text"
-            value={segmento.ctr}
-            readOnly
-            placeholder="0.00"
-            style={{ 
-                backgroundColor: '#e9ecef',
-                paddingRight: '30px'
-            }}
-        />
-        <span style={{
-            position: 'absolute',
-            right: '10px',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            pointerEvents: 'none',
-            color: '#6c757d',
-            fontSize: '0.875rem'
-        }}>
-            %
-        </span>
-    </div>
-</td>
+                                            <div style={{ position: 'relative' }}>
+                                                <Form.Control
+                                                    size="sm"
+                                                    type="text"
+                                                    value={segmento.porcentajeOpen}
+                                                    readOnly
+                                                    placeholder="0.00"
+                                                    style={{
+                                                        backgroundColor: '#e9ecef',
+                                                        paddingRight: '30px'
+                                                    }}
+                                                />
+                                                <span style={{
+                                                    position: 'absolute',
+                                                    right: '10px',
+                                                    top: '50%',
+                                                    transform: 'translateY(-50%)',
+                                                    pointerEvents: 'none',
+                                                    color: '#6c757d',
+                                                    fontSize: '0.875rem'
+                                                }}>
+                                                    %
+                                                </span>
+                                            </div>
+                                        </td>
+
+                                        <td>
+                                            <div style={{ position: 'relative' }}>
+                                                <Form.Control
+                                                    size="sm"
+                                                    type="text"
+                                                    value={segmento.ctr}
+                                                    readOnly
+                                                    placeholder="0.00"
+                                                    style={{
+                                                        backgroundColor: '#e9ecef',
+                                                        paddingRight: '30px'
+                                                    }}
+                                                />
+                                                <span style={{
+                                                    position: 'absolute',
+                                                    right: '10px',
+                                                    top: '50%',
+                                                    transform: 'translateY(-50%)',
+                                                    pointerEvents: 'none',
+                                                    color: '#6c757d',
+                                                    fontSize: '0.875rem'
+                                                }}>
+                                                    %
+                                                </span>
+                                            </div>
+                                        </td>
                                         <td className="text-center">
                                             <Button
                                                 variant="danger"
@@ -1469,22 +1469,22 @@ useEffect(() => {
                     </div>
 
                     {/* Gráfica automática - se muestra si hay datos válidos */}
-                    {segmentos.some(s => 
-                        s.especialidad && s.especialidad.trim() !== '' && 
-                        s.usuarios && s.usuarios.trim() !== '' && 
+                    {segmentos.some(s =>
+                        s.especialidad && s.especialidad.trim() !== '' &&
+                        s.usuarios && s.usuarios.trim() !== '' &&
                         !isNaN(parseInt(s.usuarios))
                     ) && (
-                        <Card className="mt-4">
-                            <Card.Header className="bg-light">
-                                <h6 className="mb-0">Segmentos enviados</h6>
-                            </Card.Header>
-                            <Card.Body>
-                                <div style={{ height: '300px', position: 'relative' }}>
-                                    <canvas ref={canvasRefCallback}></canvas>
-                                </div>
-                            </Card.Body>
-                        </Card>
-                    )}
+                            <Card className="mt-4">
+                                <Card.Header className="bg-light">
+                                    <h6 className="mb-0">Segmentos enviados</h6>
+                                </Card.Header>
+                                <Card.Body>
+                                    <div style={{ height: '300px', position: 'relative' }}>
+                                        <canvas ref={canvasRefCallback}></canvas>
+                                    </div>
+                                </Card.Body>
+                            </Card>
+                        )}
                 </div>
 
                 {/* Botones */}
@@ -1493,9 +1493,9 @@ useEffect(() => {
                         <Button variant="outline-secondary" onClick={handleCancel} disabled={loading}>
                             Cancelar
                         </Button>
-                        <Button 
-                            variant="outline-primary" 
-                            onClick={handleDownloadPDF} 
+                        <Button
+                            variant="outline-primary"
+                            onClick={handleDownloadPDF}
                             disabled={loading || loadingPDF}
                         >
                             {loadingPDF ? (
