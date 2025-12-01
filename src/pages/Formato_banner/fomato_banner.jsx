@@ -6,6 +6,7 @@ import './formato_banner.css';
 import Banner_semantico from '../../img/banner_semantico.png';
 import Banner_ipa from '../../img/banner_ipa.png';
 import Banner_home from '../../img/banner_home.png';
+import ChipInput from "../../components/ChipInput/ChipInput";
 
 function FormatoBanner() {
     const [formData, setFormData] = useState({
@@ -16,12 +17,14 @@ function FormatoBanner() {
         telefono: '',
         empresaOrganizacion: '',
         tipoBanner: '',
-        keywordsCampana: '',
+        keywordsCampana: [],
         especialidades: '',
         duracionCampana: '',
         comentarios: '',
         miniatura: null
     });
+
+    const [keywords, setKeywords] = useState([]);
 
     const [dragActive, setDragActive] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -29,7 +32,7 @@ function FormatoBanner() {
     const [mensaje, setMensaje] = useState({ tipo: '', texto: '' });
 
     // URL del webhook de Make (reemplaza con la tuya)
-    const MAKE_WEBHOOK_URL = 'TU_WEBHOOK_URL_AQUI';
+    const MAKE_WEBHOOK_URL = 'http://localhost:5678/webhook-test/banner-validation';
 
     const bannerInfo = {
         'Banner Home': {
@@ -437,7 +440,11 @@ function FormatoBanner() {
                 <td class="metrica-cell" style="width: 50%; padding: 5px;">
                     <div class="metrica-box">
                         <div class="metrica-header">Keywords:</div>
-                        <div class="metrica-valor">${formData.keywordsCampana || ''}</div>
+                        <div class="metrica-valor">
+                            ${Array.isArray(formData.keywordsCampana) 
+                                ? formData.keywordsCampana.join(', ') 
+                                : (formData.keywordsCampana || '')}
+                        </div>
                     </div>
                 </td>
                 <td class="metrica-cell" style="width: 50%; padding: 5px;">
@@ -565,12 +572,13 @@ function FormatoBanner() {
             telefono: '',
             empresaOrganizacion: '',
             tipoBanner: '',
-            keywordsCampana: '',
+            keywordsCampana: [],
             especialidades: '',
             duracionCampana: '',
             comentarios: '',
             miniatura: null
         });
+        setKeywords([]);
         setMensaje({ tipo: '', texto: '' });
     };
 
@@ -838,13 +846,17 @@ function FormatoBanner() {
                     <Col md={6}>
                         <Form.Group>
                             <Form.Label>Keywords :</Form.Label>
-                            <Form.Control
-                                as="textarea"
-                                rows={1}
-                                name="keywordsCampana"
-                                value={formData.keywordsCampana}
-                                onChange={handleChange}
-                                placeholder=""
+                            <ChipInput 
+                                items={keywords}
+                                setItems={(list) => {
+                                    setKeywords(list);
+                                    setFormData(prev => ({
+                                        ...prev,
+                                        keywordsCampana: list
+                                    }));
+                                }}
+                                placeholder="Ej: búsqueda, banner, campaña..."
+                                badgeColor="info"
                             />
                         </Form.Group>
                     </Col> 
