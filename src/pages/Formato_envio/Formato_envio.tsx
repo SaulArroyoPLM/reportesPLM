@@ -439,7 +439,7 @@ const opt = {
         scale: 2,
         useCORS: true,
         letterRendering: true,
-        allowTaint: false,
+        allowTaint: true,     // ← ESTO ES CLAVE
         backgroundColor: '#ffffff',
         logging: false,
         windowWidth: 1122,
