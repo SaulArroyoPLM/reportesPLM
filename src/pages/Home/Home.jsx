@@ -148,7 +148,7 @@ const handleCloseBanner = () => {
                   src={Dociconodos}
                   alt="Logo Formato" />
               </div>
-              Formato para envío de emailing
+              Formato para envío de mailing
               
             </div>
           </div>
@@ -161,7 +161,7 @@ const handleCloseBanner = () => {
                   src={Docicono}
                   alt="Logo Formato" />
               </div>
-              Formato para reporte de emailing
+              Formato para reporte de mailing
             </div>
           </div>
         </Col>

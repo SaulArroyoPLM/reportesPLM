@@ -21,70 +21,153 @@ function FormatoBanner() {
         comentarios: '',
         miniatura: null
     });
-    const [keywordsWeb, setKeywordsWeb] = useState([]);
-    const [keywordsApp, setKeywordsApp] = useState([]);
 
     const [dragActive, setDragActive] = useState(false);
     const [loading, setLoading] = useState(false);
     const [loadingPDF, setLoadingPDF] = useState(false);
     const [mensaje, setMensaje] = useState({ tipo: '', texto: '' });
+    const [show, setShow] = useState(false);
+
 
     // URL del webhook de Make (reemplaza con la tuya)
     const MAKE_WEBHOOK_URL = 'http://localhost:5678/webhook-test/banner-validation';
 
-    const bannerInfo = {
-        'Banner Home': {
+    // Banners para WEB
+    const bannerInfoWeb = {
+        'Banner Home Web': {
             destinado: 'Pacientes y Médicos',
-            dimensiones: '336 × 105 px',
-            formato: 'JPG, PNG o GIF'
+            dimensiones: '1220 × 320 px',
+            formato: 'JPG, PNG o GIF',
+            peso: 'Máx 2MB',
+            color: 'RGB, 72 dpi'
         },
-        'Banner Buscador Semántico': {
+        'Banner Keyword Buscador': {
             destinado: 'Pacientes y Médicos',
-            dimensiones: '336 × 105 px',
-            formato: 'JPG, PNG o GIF'
+            dimensiones: '1400 × 256 px',
+            formato: 'JPG, PNG o GIF',
+            peso: 'Máx 2MB',
+            color: 'RGB, 72 dpi'
         },
-        'Banner IPPA': {
+        'Banner IPPA Web': {
             destinado: 'Pacientes y Médicos',
-            dimensiones: ['526 × 269 px', '285 × 517 px'],
-            formato: 'JPG, PNG o GIF'
+            dimensiones: ['285 × 517 px', '649 × 325 px'],
+            formato: 'JPG, PNG o GIF',
+            peso: 'Máx 2MB',
+            color: 'RGB, 72 dpi'
+        }
+    };
+    const bannerInfoApp = {
+        'Banner Bienvenida': {
+            destinado: 'Pacientes',
+            dimensiones: '1050 × 614 px',
+            formato: 'JPG, PNG o GIF',
+            peso: 'Máx 3MB',
+            color: 'RGB, 72 dpi'
+        },
+        'Video Bienvenida': {
+            destinado: 'Pacientes',
+            dimensiones: '1028 × 720 px',
+            formato: 'MP4 (16:9)',
+            peso: 'Máx 50MB recomendado',
+            color: 'RGB'
+        },
+        'Banner Home App': {
+            destinado: 'Pacientes y Médicos',
+            dimensiones: ['960 × 240 px', '1400 × 256 px'],
+            formato: 'JPG, PNG o GIF',
+            peso: 'Máx 3MB',
+            color: 'RGB, 72 dpi'
+        },
+        'Banner Keywords App': {
+            destinado: 'Pacientes y Médicos',
+            dimensiones: ['960 × 240 px', '1400 × 256 px'],
+            formato: 'JPG, PNG o GIF',
+            peso: 'Máx 3MB',
+            color: 'RGB, 72 dpi'
+        },
+        'Ícono Podcast': {
+            destinado: 'Pacientes',
+            dimensiones: '300 × 300 px',
+            formato: 'PNG (con fondo transparente recomendado)',
+            peso: 'Máx 1MB',
+            color: 'RGB'
         }
     };
 
+
+
     // Información del modal para cada tipo de banner
     const bannerModalInfo = {
-        'Banner Home': {
-            ubicacion: 'Banner Home',
-            imagen: Banner_home, // Reemplaza con la URL real de tu imagen
+        "Banner Home Web": {
+            ubicacion: "Banner Home - Web",
+            imagen: Banner_home // Reemplaza con tu imagen real
         },
-        'Banner Buscador Semántico': {
-            ubicacion: 'Banner Buscador Semántico',
-            imagen: Banner_semantico,
+        "Banner Keyword Buscador": {
+            ubicacion: "Keyword Buscador - Web",
+            imagen: Banner_semantico // Reemplaza con tu imagen real
         },
-        'Banner IPPA': {
-            ubicacion: 'Banner IPPA',
-            imagen: Banner_ipa // Reemplaza con la URL real de tu imagen
+        "Banner IPPA Web": {
+            ubicacion: "Banner IPPA - Web",
+            imagen: Banner_ipa // Reemplaza con tu imagen real
+        },
+        "Banner Bienvenida": {
+            ubicacion: "Banner Bienvenida - App",
+            imagen: Banner_home // Reemplaza con tu imagen real
+        },
+        "Video Bienvenida": {
+            ubicacion: "Video Bienvenida - App",
+            imagen: Banner_home // Reemplaza con tu imagen real
+        },
+        "Banner Home App": {
+            ubicacion: "Banner Home - App",
+            imagen: Banner_home // Reemplaza con tu imagen real
+        },
+        "Banner Keywords App": {
+            ubicacion: "Keywords - App",
+            imagen: Banner_semantico // Reemplaza con tu imagen real
+        },
+        "Ícono Podcast": {
+            ubicacion: "Ícono Podcast - App",
+            imagen: Banner_home // Reemplaza con tu imagen real
         }
     };
-    const [show, setShow] = useState(false);
+
+    const getBannerOptions = () => {
+        if (!formData.tipoPlataforma) return [];
+
+        if (formData.tipoPlataforma === 'Web') {
+            return Object.keys(bannerInfoWeb).map(key => ({
+                value: key,
+                label: key
+            }));
+        }
+
+        if (formData.tipoPlataforma === 'App') {
+            return Object.keys(bannerInfoApp).map(key => ({
+                value: key,
+                label: key
+            }));
+        }
+
+        // Para "Ambos"
+        const webOptions = Object.keys(bannerInfoWeb).map(k => ({
+            value: k,
+            label: `${k}`
+        }));
+        const appOptions = Object.keys(bannerInfoApp).map(k => ({
+            value: k,
+            label: `${k}`
+        }));
+        return [...webOptions, ...appOptions];
+    };
+
+
+    const selectedBannerModal = formData.tipoBanner ? bannerModalInfo[formData.tipoBanner] : null;
 
     const handleOpen = () => setShow(true);
     const handleClose = () => setShow(false);
 
-    // Función para mapear el valor del select a la clave del bannerInfo
-    const getBannerKey = (value) => {
-        const mapping = {
-            'Banner home': 'Banner Home',
-            'Banner buscador smeantico': 'Banner Buscador Semántico',
-            'Banner ippa': 'Banner IPPA'
-        };
-        return mapping[value] || null;
-    };
 
-    // Obtener información del banner seleccionado
-    const selectedBannerInfo = formData.tipoBanner ? bannerInfo[getBannerKey(formData.tipoBanner)] : null;
-
-    // Obtener información del modal para el banner seleccionado
-    const selectedBannerModal = formData.tipoBanner ? bannerModalInfo[getBannerKey(formData.tipoBanner)] : null;
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -94,26 +177,23 @@ function FormatoBanner() {
         }));
     };
     // Esto va arriba con los demás useState
-const [plataformaSeleccionada, setPlataformaSeleccionada] = useState('');
 
-// Esto reemplaza tu handleChange actual del select de plataforma
-const handlePlataformaChange = (e) => {
-    const valor = e.target.value;
-    setPlataformaSeleccionada(valor);
-    setFormData(prev => ({
-        ...prev,
-        tipoPlataforma: valor
-    }));
 
-    // Si elige solo Web o solo App, limpiamos el otro campo
-    if (valor === 'Web') {
-        setKeywordsApp([]);
-        setFormData(prev => ({ ...prev, keywordsApp: [] }));
-    } else if (valor === 'App') {
-        setKeywordsWeb([]);
-        setFormData(prev => ({ ...prev, keywordsWeb: [] }));
-    }
-};
+    // Esto reemplaza tu handleChange actual del select de plataforma
+    const handlePlataformaChange = (e) => {
+        const valor = e.target.value;
+        setFormData(prev => ({
+            ...prev,
+            tipoPlataforma: valor
+        }));
+
+        // Si elige solo Web o solo App, limpiamos el otro campo
+        if (valor === 'Web') {
+            setFormData(prev => ({ ...prev, keywordsApp: [] }));
+        } else if (valor === 'App') {
+            setFormData(prev => ({ ...prev, keywordsWeb: [] }));
+        }
+    };
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
@@ -168,6 +248,17 @@ const handlePlataformaChange = (e) => {
             setDragActive(false);
         }
     };
+    // ==================== OBTENER INFO DEL BANNER SELECCIONADO ====================
+    const getSelectedBannerInfo = () => {
+        if (!formData.tipoBanner) return null;
+        if (formData.tipoPlataforma === "Web" || formData.tipoPlataforma === "Ambos") {
+            return bannerInfoWeb[formData.tipoBanner] || null;
+        }
+        return bannerInfoApp[formData.tipoBanner] || null;
+    };
+
+
+
 
     const handleDrop = (e) => {
         e.preventDefault();
@@ -419,7 +510,6 @@ const handlePlataformaChange = (e) => {
                 tipoBanner: formData.tipoBanner,
                 laboratorio: formData.laboratorio,
                 nombreCampana: formData.nombreCampana,
-                empresaOrganizacion: formData.empresaOrganizacion,
                 keywordsWeb: formData.keywordsWeb,
                 keywordsApp: formData.keywordsApp,
                 especialidades: formData.especialidades,
@@ -472,8 +562,7 @@ const handlePlataformaChange = (e) => {
             comentarios: '',
             miniatura: null
         });
-        setKeywordsWeb([]);     // <-- importante
-        setKeywordsApp([]);     // <-- importante
+
         setMensaje({ tipo: '', texto: '' });
     };
 
@@ -511,16 +600,16 @@ const handlePlataformaChange = (e) => {
                                 <Col sm={6}>
                                     <Form.Group className="mb-3">
                                         <Form.Label>Tipo de plataforma</Form.Label>
-                                       <Form.Select
-    name="tipoPlataforma"
-    value={formData.tipoPlataforma}
-    onChange={handlePlataformaChange}   // <-- aquí el nuevo handler
->
-    <option value="">Selecciona una opción</option>
-    <option value="Ambos">Ambos (Web y App</option>
-    <option value="Web">Solo Web</option>
-    <option value="App">Solo App</option>
-</Form.Select>
+                                        <Form.Select
+                                            name="tipoPlataforma"
+                                            value={formData.tipoPlataforma}
+                                            onChange={handlePlataformaChange}   // <-- aquí el nuevo handler
+                                        >
+                                            <option value="">Selecciona una opción</option>
+                                            <option value="Ambos">Ambos (Web y App)</option>
+                                            <option value="Web">Solo Web</option>
+                                            <option value="App">Solo App</option>
+                                        </Form.Select>
                                     </Form.Group>
                                 </Col>
                                 <Col md={6}>
@@ -530,54 +619,46 @@ const handlePlataformaChange = (e) => {
                                             name="tipoBanner"
                                             value={formData.tipoBanner}
                                             onChange={handleChange}
+                                            disabled={!formData.tipoPlataforma}
+                                            required
                                         >
-                                            <option value="">Selecciona una opción</option>
-                                            <option value="Banner home">Banner Home</option>
-                                            <option value="Banner buscador smeantico">Banner Buscador Semántico</option>
-                                            <option value="Banner ippa">Banner IPPA</option>
+                                            <option value="">
+                                                {formData.tipoPlataforma ? "Selecciona un banner..." : "Primero elige la plataforma"}
+                                            </option>
+                                            {getBannerOptions().map(opt => (
+                                                <option key={opt.value} value={opt.value}>
+                                                    {opt.label}
+                                                </option>
+                                            ))}
                                         </Form.Select>
-                                    </Form.Group>
 
-                                    {/* Información del banner seleccionado */}
-                                    {selectedBannerInfo && (
-                                        <div className="banner-info-container">
-                                            <div className="banner-info-content">
-                                                <div className="banner-info-left">
-                                                    <p className="banner-info-text">
-                                                        <strong>Destinado a:</strong> {selectedBannerInfo.destinado}
-                                                    </p>
-                                                    <div className="banner-info-row">
-                                                        <p className="banner-info-text">
-                                                            <strong>Dimensiones:</strong>
-                                                            {Array.isArray(selectedBannerInfo.dimensiones) ? (
-                                                                selectedBannerInfo.dimensiones.map((dim, index) => (
-                                                                    <span key={index} className="dimension-badge">{dim}</span>
-                                                                ))
-                                                            ) : (
-                                                                <span className="dimension-badge">{selectedBannerInfo.dimensiones}</span>
-                                                            )}
-                                                        </p>
-                                                    </div>
-                                                    <p className="banner-info-text">
-                                                        <strong>Formato:</strong> {selectedBannerInfo.formato}
-                                                    </p>
-                                                </div>
-                                                <div className="banner-info-right">
-                                                    <Button
-                                                        variant="secondary"
-                                                        size="sm"
-                                                        className="view-location-btn"
-                                                        onClick={handleOpen}
-                                                    >
-                                                        <FontAwesomeIcon icon={faEye} className="me-2" />
-                                                        Ver ubicación
-                                                    </Button>
-                                                </div>
+                                        {/* INFO DEL BANNER */}
+                                        {getSelectedBannerInfo() && (
+                                            <div className="mt-3 p-3 bg-light border rounded">
+                                                <small className="text-muted">Especificaciones:</small>
+                                                <ul className="small mb-0 mt-2">
+                                                    <li><strong>Destinado a:</strong> {getSelectedBannerInfo().destinado}</li>
+                                                    <li><strong>Medidas:</strong>{" "}
+                                                        {Array.isArray(getSelectedBannerInfo().dimensiones)
+                                                            ? getSelectedBannerInfo().dimensiones.join(" y ")
+                                                            : getSelectedBannerInfo().dimensiones}
+                                                    </li>
+                                                    <li><strong>Formato:</strong> {getSelectedBannerInfo().formato}</li>
+                                                    <li><strong>Peso máx:</strong> {getSelectedBannerInfo().peso}</li>
+                                                    <li><strong>Color:</strong> {getSelectedBannerInfo().color}</li>
+                                                </ul>
+                                                <Button
+                                                    variant="outline-secondary"
+                                                    size="sm"
+                                                    className="mt-2"
+                                                    onClick={handleOpen}
+                                                >
+                                                    Ver ubicación
+                                                </Button>
                                             </div>
-                                        </div>
-                                    )}
+                                        )}
+                                    </Form.Group>
                                 </Col>
-
 
 
                             </Row>
@@ -599,7 +680,7 @@ const handlePlataformaChange = (e) => {
 
                                 <Col sm={6}>
                                     <Form.Group className="mb-3">
-                                        <Form.Label>Nombre de la campaña</Form.Label>
+                                        <Form.Label>Marca</Form.Label>
                                         <Form.Control
                                             type="text"
                                             name="nombreCampana"
@@ -714,88 +795,86 @@ const handlePlataformaChange = (e) => {
                     <Row>
 
 
-{(plataformaSeleccionada === 'Ambos' || plataformaSeleccionada === 'Web') && (
-    <Col md={6}>
-        <Form.Group className="mb-3">
-            <Form.Label>Keywords Web :</Form.Label>
-            <ChipInput 
-                items={keywordsWeb}
-                setItems={(list) => {
-                    setKeywordsWeb(list);
-                    setFormData(prev => ({ ...prev, keywordsWeb: list }));
-                }}
-                placeholder="Ej: diabetes, hipertensión..."
-                badgeColor="info"
-            />
-        </Form.Group>
-    </Col>
-)}
-                      {(plataformaSeleccionada === 'Ambos' || plataformaSeleccionada === 'App') && (
-    <Col md={6}>
-        <Form.Group className="mb-3">
-            <Form.Label>Keywords App :</Form.Label>
-            <ChipInput 
-                items={keywordsApp}
-                setItems={(list) => {
-                    setKeywordsApp(list);
-                    setFormData(prev => ({ ...prev, keywordsApp: list }));
-                }}
-                placeholder="Ej: diabetes, hipertensión..."
-                badgeColor="info"
-            />
-        </Form.Group>
-    </Col>
-)}
+                        {(formData.tipoPlataforma === 'Ambos' || formData.tipoPlataforma === 'Web') && (
+                            <Col md={6}>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Keywords Web :</Form.Label>
+                                    <ChipInput
+                                        items={formData.keywordsWeb}
+                                        setItems={(list) => {
+                                            setFormData(prev => ({ ...prev, keywordsWeb: list }));
+                                        }}
+                                        placeholder="Ej: diabetes, hipertensión..."
+                                        badgeColor="info"
+                                    />
+                                </Form.Group>
+                            </Col>
+                        )}
+                        {(formData.tipoPlataforma === 'Ambos' || formData.tipoPlataforma === 'App') && (
+                            <Col md={6}>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Keywords App :</Form.Label>
+                                    <ChipInput
+                                        items={formData.keywordsApp}
+                                        setItems={(list) => {
+                                            setFormData(prev => ({ ...prev, keywordsApp: list }));
+                                        }}
+                                        placeholder="Ej: diabetes, hipertensión..."
+                                        badgeColor="info"
+                                    />
+                                </Form.Group>
+                            </Col>
+                        )}
                     </Row>
 
                     {/* Contenido del mailing */}
-           {/* Especialidades y Comentarios - con ancho dinámico */}
-<Container className="backgroundTres p-4 my-4 rounded">
-    <Row className="g-4">
-        {/* ESPECIALIDADES - solo aparece en App o Ambos */}
-        {(formData.tipoPlataforma === 'App' || formData.tipoPlataforma === 'Ambos') && (
-            <Col md={6}>
-                <Form.Group>
-                    <Form.Label className="fw-bold text-primary">
-                        Especialidades (solo App)
-                    </Form.Label>
-                    <Form.Control
-                        as="textarea"
-                        rows={4}
-                        name="especialidades"
-                        value={formData.especialidades}
-                        onChange={handleChange}
-                        placeholder="Ej: Cardiología, Pediatría, Neurología, Dermatología..."
-                        className="border-primary"
-                    />
-                </Form.Group>
-            </Col>
-        )}
+                    {/* Especialidades y Comentarios - con ancho dinámico */}
+                    <Container className="backgroundTres p-4 my-4 rounded">
+                        <Row className="g-4">
+                            {/* ESPECIALIDADES - solo aparece en App o Ambos */}
+                            {(formData.tipoPlataforma === 'App' || formData.tipoPlataforma === 'Ambos') && (
+                                <Col md={6}>
+                                    <Form.Group>
+                                        <Form.Label className="fw-bold text-primary">
+                                            Especialidades (solo App)
+                                        </Form.Label>
+                                        <Form.Control
+                                            as="textarea"
+                                            rows={4}
+                                            name="especialidades"
+                                            value={formData.especialidades}
+                                            onChange={handleChange}
+                                            placeholder="Ej: Cardiología, Pediatría, Neurología, Dermatología..."
+                                            className="border-primary"
+                                        />
+                                    </Form.Group>
+                                </Col>
+                            )}
 
-        {/* COMENTARIOS ADICIONALES - ancho automático */}
-        <Col 
-            md={
-                formData.tipoPlataforma === 'Web' 
-                    ? 12 
-                    : 6
-            }
-        >
-            <Form.Group>
-                <Form.Label className="fw-bold text-primary">
-                    Comentarios adicionales
-                </Form.Label>
-                <Form.Control
-                    as="textarea"
-                    rows={5}
-                    name="comentarios"
-                    value={formData.comentarios}
-                    onChange={handleChange}
-                    placeholder="Escribe aquí cualquier comentario extra: enlaces, notas, especificaciones técnicas, etc."
-                />
-            </Form.Group>
-        </Col>
-    </Row>
-</Container>
+                            {/* COMENTARIOS ADICIONALES - ancho automático */}
+                            <Col
+                                md={
+                                    formData.tipoPlataforma === 'Web'
+                                        ? 12
+                                        : 6
+                                }
+                            >
+                                <Form.Group>
+                                    <Form.Label className="fw-bold text-primary">
+                                        Comentarios adicionales
+                                    </Form.Label>
+                                    <Form.Control
+                                        as="textarea"
+                                        rows={5}
+                                        name="comentarios"
+                                        value={formData.comentarios}
+                                        onChange={handleChange}
+                                        placeholder="Escribe aquí cualquier comentario extra: enlaces, notas, especificaciones técnicas, etc."
+                                    />
+                                </Form.Group>
+                            </Col>
+                        </Row>
+                    </Container>
 
                     {/* Botones */}
                     <Row className="mt-4">

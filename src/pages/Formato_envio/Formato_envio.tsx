@@ -658,7 +658,7 @@ const opt = {
                                         name="periodicidad"
                                         value={formData.periodicidad}
                                         onChange={handleChange}
-                                        placeholder="Ej: Semanal, mensual, trimestral"
+                                        placeholder="Ej: Unico envio, Semanal, mensual, trimestral"
                                     />
                                 </Form.Group>
                             </Col>

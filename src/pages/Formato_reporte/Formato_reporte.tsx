@@ -1230,7 +1230,7 @@ function FormatoReporte() {
                         </Col>
                         <Col md={2}>
                             <Form.Group className="mb-3">
-                                <Form.Label>Click</Form.Label>
+                                <Form.Label>Clic</Form.Label>
                                 <Form.Control
                                     type="number"
                                     name="clic"
