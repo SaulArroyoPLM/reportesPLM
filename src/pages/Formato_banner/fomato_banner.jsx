@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Container, Row, Col, Form, Button, Card, Spinner, Modal } from 'react-bootstrap';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUpload, faCheckCircle, faTimes, faDownload, faEye } from "@fortawesome/free-solid-svg-icons";
+import { faUpload, faCheckCircle, faTimes, faDownload, faEye, faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
 import './formato_banner.css';
 import Banner_semantico from '../../img/banner_semantico.png';
 import Banner_ipa from '../../img/banner_ipa.png';
@@ -19,7 +19,8 @@ function FormatoBanner() {
         keywordsApp: [],
         especialidades: '',
         comentarios: '',
-        miniatura: null
+        imagenes: [] // ← AHORA ES UN ARRAY DE IMÁGENES
+        // { file, preview, width, height, sizeKB, name, format, isValid }
     });
 
     const [dragActive, setDragActive] = useState(false);
@@ -132,6 +133,26 @@ function FormatoBanner() {
         }
     };
 
+    // MEDIDAS ESPERADAS PARA VALIDACIÓN AUTOMÁTICA
+    const medidasEsperadas = {
+        'Banner Home Web': [[1220, 320]],
+        'Banner Keyword Buscador': [[1400, 256]],
+        'Banner IPPA Web': [[285, 517], [649, 325]],
+        'Banner Bienvenida': [[1050, 614]],
+        'Banner Home App': [[960, 240], [1400, 256]],
+        'Banner Keywords App': [[960, 240], [1400, 256]],
+        'Ícono Podcast': [[300, 300]]
+        // Video Bienvenida lo ignoramos porque es MP4
+    };
+
+    const getMedidasEsperadas = () => {
+        if (!formData.tipoBanner || formData.tipoBanner.includes('Video')) return [];
+        return medidasEsperadas[formData.tipoBanner] || [];
+    };
+
+    const cantidadEsperada = getMedidasEsperadas().length;
+
+
     const getBannerOptions = () => {
         if (!formData.tipoPlataforma) return [];
 
@@ -195,49 +216,7 @@ function FormatoBanner() {
         }
     };
 
-    const handleFileChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const img = new Image();
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 300;
-                    const MAX_HEIGHT = 200;
 
-                    let width = img.width;
-                    let height = img.height;
-
-                    if (width > height) {
-                        if (width > MAX_WIDTH) {
-                            height *= MAX_WIDTH / width;
-                            width = MAX_WIDTH;
-                        }
-                    } else {
-                        if (height > MAX_HEIGHT) {
-                            width *= MAX_HEIGHT / height;
-                            height = MAX_HEIGHT;
-                        }
-                    }
-
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-
-                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.3);
-
-                    setFormData(prev => ({
-                        ...prev,
-                        miniatura: compressedBase64
-                    }));
-                };
-                img.src = reader.result;
-            };
-            reader.readAsDataURL(file);
-        }
-    };
 
     const handleDrag = (e) => {
         e.preventDefault();
@@ -257,35 +236,90 @@ function FormatoBanner() {
         return bannerInfoApp[formData.tipoBanner] || null;
     };
 
+    // PROCESAR Y VALIDAR IMAGEN
+    const procesarImagen = (file) => {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const sizeKB = (file.size / 1024).toFixed(1);
+                    const format = file.type.split('/')[1].toUpperCase();
+
+                    const medidas = getMedidasEsperadas();
+                    let valida = false;
+                    let medidaTexto = '';
+
+                    for (let i = 0; i < medidas.length; i++) {
+                        if (img.width === medidas[i][0] && img.height === medidas[i][1]) {
+                            valida = true;
+                            medidaTexto = `${medidas[i][0]}×${medidas[i][1]}px`;
+                            break;
+                        }
+                    }
+
+                    resolve({
+                        file,
+                        preview: e.target.result,
+                        width: img.width,
+                        height: img.height,
+                        size: sizeKB + ' KB',
+                        name: file.name,
+                        format,
+                        valida,
+                        medidaTexto
+                    });
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    };
+
+    // MANEJAR SUBIDA MÚLTIPLE
+    const handleFileChangeMultiple = async (e) => {
+        const files = Array.from(e.target.files);
+        for (const file of files) {
+            if (formData.imagenes.length >= cantidadEsperada) break;
+            if (!file.type.startsWith('image/')) continue;
+
+            const imgData = await procesarImagen(file);
+            setFormData(prev => ({
+                ...prev,
+                imagenes: [...prev.imagenes, imgData]
+            }));
+        }
+        e.target.value = '';
+    };
 
 
 
-    const handleDrop = (e) => {
+    // Función para eliminar imagen del array
+    const removeImage = (index) => {
+        setFormData(prev => ({
+            ...prev,
+            imagenes: prev.imagenes.filter((_, i) => i !== index)
+        }));
+    };
+
+    // Manejar drop de imágenes
+    const handleDrop = async (e) => {
         e.preventDefault();
         e.stopPropagation();
         setDragActive(false);
 
-        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-            const file = e.dataTransfer.files[0];
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setFormData(prev => ({
-                    ...prev,
-                    miniatura: reader.result
-                }));
-            };
-            reader.readAsDataURL(file);
+        const files = Array.from(e.dataTransfer.files);
+        for (const file of files) {
+            if (formData.imagenes.length >= cantidadEsperada) break;
+            if (!file.type.startsWith('image/')) continue;
+
+            const imgData = await procesarImagen(file);
+            setFormData(prev => ({
+                ...prev,
+                imagenes: [...prev.imagenes, imgData]
+            }));
         }
     };
-
-    const handleRemoveImage = (e) => {
-        e.stopPropagation();
-        setFormData(prev => ({
-            ...prev,
-            miniatura: null
-        }));
-    };
-
     const handleDownloadPDF = async () => {
         setLoadingPDF(true);
 
@@ -418,8 +452,8 @@ function FormatoBanner() {
                 <td width="35%" valign="top">
                     <div class="dato-label" style="margin-bottom: 8px;">Miniatura del banner</div>
                     <div class="arte-container">
-                        ${formData.miniatura
-                    ? `<img src="${formData.miniatura}" alt="Banner">`
+                    ${formData.imagenes.length > 0 ?
+                    formData.imagenes.map(img => `<img src="${img.preview}" style="max-width:48%; margin:1%; display:inline-block;" />`).join('')
                     : '<div style="color:#999;">Sin imagen</div>'
                 }
                     </div>
@@ -515,7 +549,15 @@ function FormatoBanner() {
                 especialidades: formData.especialidades,
                 duracionCampana: formData.duracionCampana,
                 comentarios: formData.comentarios,
-                miniatura: formData.miniatura
+                imagenes: formData.imagenes.map(img => ({
+                    name: img.name,
+                    width: img.width,
+                    height: img.height,
+                    size: img.size,
+                    format: img.format,
+                    valida: img.valida,
+                    preview: img.preview
+                }))
             };
 
             const response = await fetch(MAKE_WEBHOOK_URL, {
@@ -560,7 +602,7 @@ function FormatoBanner() {
             keywordsApp: [],
             especialidades: '',
             comentarios: '',
-            miniatura: null
+            imagenes: []
         });
 
         setMensaje({ tipo: '', texto: '' });
@@ -706,89 +748,94 @@ function FormatoBanner() {
                         </Col>
 
                         <Col md={6}>
-                            <Form.Label className="mb-2">Miniatura de imagen</Form.Label>
+                            <Form.Label className="mb-2 fw-bold text-primary">
+                                {cantidadEsperada > 1
+                                    ? `Sube las ${cantidadEsperada} imágenes requeridas`
+                                    : cantidadEsperada === 1
+                                        ? "Sube la imagen del banner"
+                                        : "Selecciona primero el tipo de banner"}
+                            </Form.Label>
                             <Card
-                                className={`text-center p-4 ${dragActive ? 'border-primary bg-light' : ''}`}
+                                className={`p-4 ${dragActive ? 'border-primary bg-light' : ''}`}
                                 style={{
-                                    cursor: formData.miniatura ? 'default' : 'pointer',
-                                    border: dragActive ? '2px dashed #0d6efd' : '2px dashed #dee2e6',
-                                    minHeight: '300px',
-                                    transition: 'all 0.3s ease'
+                                    border: dragActive ? '3px dashed #0d6efd' : '2px dashed #ccc',
+                                    minHeight: '380px',
+                                    cursor: 'pointer'
                                 }}
-                                onDragEnter={handleDrag}
-                                onDragLeave={handleDrag}
-                                onDragOver={handleDrag}
+                                onDragEnter={(e) => { e.preventDefault(); setDragActive(true); }}
+                                onDragLeave={(e) => { e.preventDefault(); setDragActive(false); }}
+                                onDragOver={(e) => e.preventDefault()}
                                 onDrop={handleDrop}
-                                onClick={() => {
-                                    if (!formData.miniatura) {
-                                        document.getElementById('fileInput').click();
-                                    }
-                                }}
+                                onClick={() => document.getElementById('fileInputMultiple').click()}
                             >
-                                <Card.Body className="d-flex flex-column justify-content-center align-items-center h-100">
-                                    {formData.miniatura ? (
-                                        <div className="position-relative w-100 h-100 d-flex flex-column align-items-center justify-content-center">
-                                            <div className="position-relative">
-                                                <img
-                                                    src={formData.miniatura}
-                                                    alt="Preview"
-                                                    className="img-fluid"
-                                                    style={{
-                                                        maxWidth: '100%',
-                                                        maxHeight: '240px',
-                                                        objectFit: 'contain',
-                                                        borderRadius: '8px'
-                                                    }}
-                                                />
-                                                <Button
-                                                    variant="danger"
-                                                    size="sm"
-                                                    className="position-absolute rounded-circle"
-                                                    style={{
-                                                        top: '-8px',
-                                                        right: '-8px',
-                                                        width: '32px',
-                                                        height: '32px',
-                                                        padding: 0,
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center'
-                                                    }}
-                                                    onClick={handleRemoveImage}
-                                                >
-                                                    <FontAwesomeIcon icon={faTimes} size="sm" />
-                                                </Button>
-                                            </div>
-                                            <div className="mt-4 d-flex align-items-center gap-2 text-success fw-semibold">
-                                                <FontAwesomeIcon icon={faCheckCircle} />
-                                                <span>Imagen cargada correctamente</span>
-                                            </div>
-                                            <p className="text-muted small mt-2 mb-0">
-                                                Haz clic en la X para cambiar la imagen
-                                            </p>
+                                <Card.Body className="d-flex flex-column justify-content-center">
+                                    {formData.imagenes.length === 0 ? (
+                                        <div className="text-center py-4">
+                                            <FontAwesomeIcon icon={faUpload} size="4x" className="text-primary mb-3" />
+                                            <p className="fw-bold mb-1">Arrastra aquí tus imágenes</p>
+                                            {cantidadEsperada > 0 && (
+                                                <p className="text-muted small">
+                                                    Se esperan {cantidadEsperada} imagen(es): <br />
+                                                    {getMedidasEsperadas().map(m => `${m[0]}×${m[1]}px`).join(' y ')}
+                                                </p>
+                                            )}
                                         </div>
                                     ) : (
-                                        <div className="d-flex flex-column align-items-center justify-content-center h-100 py-4">
-                                            <FontAwesomeIcon
-                                                icon={faUpload}
-                                                className="text-primary mb-3"
-                                                style={{ width: '60px', height: '60px' }}
-                                            />
-                                            <p className="text-dark fw-semibold mb-1">
-                                                Arrastra y suelta aquí el archivo <br />
-                                                del banner o haz clic para subirlo
-                                            </p>
+                                        <Row className="g-3">
+                                            {formData.imagenes.map((img, idx) => (
+                                                <Col key={idx} xs={12} md={cantidadEsperada > 1 ? 6 : 12}>
+                                                    <Card className="h-100 position-relative shadow-sm">
+                                                        <Button
+                                                            variant="danger"
+                                                            size="sm"
+                                                            className="position-absolute top-0 end-0 m-2 rounded-circle"
+                                                            style={{ zIndex: 10, width: 32, height: 32 }}
+                                                            // Solución: agregar e.stopPropagation() al botón de eliminar
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                removeImage(idx);
+                                                            }}
+                                                        >
+                                                            ×
+                                                        </Button>
+                                                        <Card.Img
+                                                            variant="top"
+                                                            src={img.preview}
+                                                            style={{ height: 160, objectFit: 'contain', background: '#f8f9fa' }}
+                                                        />
+                                                        <Card.Body className="pt-2 pb-3 small">
+                                                            <div className="fw-bold text-truncate">{img.name}</div>
+                                                            <div>{img.width} × {img.height}px</div>
+                                                            <div>{img.size} • {img.format}</div>
+                                                            {img.valida ?
+                                                                <span className="text-success"><FontAwesomeIcon icon={faCheckCircle} /> Medida correcta</span> :
+                                                                <span className="text-danger"><FontAwesomeIcon icon={faExclamationTriangle} /> Medida incorrecta</span>
+                                                            }
+                                                        </Card.Body>
+                                                    </Card>
+                                                </Col>
+                                            ))}
 
-                                        </div>
+                                            {/* Espacio para subir la siguiente */}
+                                            {formData.imagenes.length < cantidadEsperada && cantidadEsperada > 0 && (
+                                                <Col xs={12} className="text-center">
+                                                    <div className="border border-2 border-dashed border-primary rounded-3 p-5 text-primary">
+                                                        <FontAwesomeIcon icon={faUpload} size="2x" />
+                                                        <p className="mt-2 mb-0">Sube imagen {formData.imagenes.length + 1}</p>
+                                                    </div>
+                                                </Col>
+                                            )}
+                                        </Row>
                                     )}
                                 </Card.Body>
                             </Card>
                             <input
-                                id="fileInput"
+                                id="fileInputMultiple"
                                 type="file"
-                                style={{ display: 'none' }}
-                                onChange={handleFileChange}
+                                multiple={cantidadEsperada > 1}
                                 accept="image/*"
+                                style={{ display: 'none' }}
+                                onChange={handleFileChangeMultiple}
                             />
                         </Col>
                     </Row>
@@ -912,51 +959,24 @@ function FormatoBanner() {
                         </Col>
                     </Row>
                 </Form>
-            </Container>
+            </Container >
 
-            {/* Modal */}
-            <Modal show={show} onHide={handleClose} centered size="lg">
+            <Modal show={show} onHide={handleClose} size="lg" centered>
                 <Modal.Header closeButton>
-                    <Modal.Title>
-                        <strong>Ubicación:</strong> {selectedBannerModal ? selectedBannerModal.ubicacion : 'No seleccionado'}
-                    </Modal.Title>
+                    <Modal.Title>Ubicación del Banner</Modal.Title>
                 </Modal.Header>
-
                 <Modal.Body>
-                    {selectedBannerModal ? (
+                    {selectedBannerModal && (
                         <>
-                            <p className="mb-3">
-                                Esta es una representación de dónde se ubicará el banner en la plataforma
-                            </p>
-                            <div className="text-center mb-3">
-                                <img
-                                    src={selectedBannerModal.imagen}
-                                    alt="Ubicación del banner"
-                                    className="img-fluid"
-                                    style={{
-                                        maxWidth: '100%',
-                                        height: 'auto',
-                                        border: '1px solid #dee2e6',
-                                        borderRadius: '8px'
-                                    }}
-                                />
-                            </div>
-                            <p className="text-muted small mb-0">
-                                <strong>Nota:</strong> Esta es una representación visual. Las dimensiones exactas deben coincidir con las especificadas.
-                            </p>
+                            <p className="text-muted mb-3">{selectedBannerModal.ubicacion}</p>
+                            <img
+                                src={selectedBannerModal.imagen}
+                                alt="Ubicación del banner"
+                                style={{ width: '100%', height: 'auto' }}
+                            />
                         </>
-                    ) : (
-                        <p>Por favor, selecciona un tipo de banner para ver su ubicación.</p>
                     )}
-
-                    <div className="banner_plantillas" >
-                        <p>Descarga plantillas</p>
-                        <Button variant="primary">Descargar Plantilla Illustrator</Button>
-                        <Button variant="outline-secondary" className="ms-2">Descargar Plantilla Photoshop</Button>
-                    </div>
-
                 </Modal.Body>
-
                 <Modal.Footer>
                     <Button variant="secondary" onClick={handleClose}>
                         Cerrar
