@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Navbar as BsNavbar, Dropdown, Container } from 'react-bootstrap';
 import './Navbar.css';
-import logo from '../../img/logo.svg';
+import logo from '../../img/plm_blanco_10.svg';
 import colombiaFlag from '../../img/iconos_menu/colombia.png';
 import mexicoFlag from '../../img/iconos_menu/mexico.png';
 import centroamericaFlag from '../../img/iconos_menu/centroamerica.png';
