@@ -13,6 +13,7 @@ function FormatoEnvio() {
         segmento: [],  
         periodicidad: '',
         subject: '',
+        preheader: '',
         callToAction: '',
         comentarios: '',
         fechasPropuestas: '',
@@ -307,12 +308,28 @@ const handleFileChange = (e) => {
         }
         
         .metrica-valor {
-            color: #4A90E2;
-            font-size: 18px;
-            font-weight: bold;
+            color: #3f3f3f;
+            font-size: 14px;
             padding: 12px;
             background-color: white;
+                word-wrap: break-word;
+    word-break: break-all;
+    overflow-wrap: break-word;
+    overflow: hidden;
         }
+            .dato-valor {
+    font-size: 14px;
+    padding: 5px 8px;
+    border-bottom: 1px solid #ddd;
+    border-top: none;
+    height: 75px;
+    
+    /* Agrega estas propiedades para romper URLs largas */
+    word-wrap: break-word;
+    word-break: break-all;
+    overflow-wrap: break-word;
+    overflow: hidden;
+}
 </style>
             
  <div class="pagina">
@@ -339,40 +356,44 @@ const handleFileChange = (e) => {
                 <td style="width: 75%; vertical-align: top; padding-right: 10px;">
                     <!-- Tipo de banner -->
                     <div class="dato-row" style="width: 100%;">
-                        <div class="tipoBanner" style="margin-right: 10px;width: 33.33%;  ">
-                            <div class="dato-label">Aplicación/ Campaña</div>
+                        <div class="tipoBanner" style="margin-right: 10px; width: 33.33%;  ">
+                            <div class="dato-label">Marca/ Aplicación/ Campaña</div>
                         <div class="dato-valor">${formData.aplicacion || ''}</div>
                         </div>
-                       <div class="tipoBanner" style="margin-right: 10px;width: 33.33%;  ">
+                       <div class="tipoBanner" style="margin-right: 10px;width:  33.33%;  ">
                           <div class="dato-label">Laboratorio/cliente:</div>
                         <div class="dato-valor">${formData.laboratorio || ''}</div>
                       </div>
-                       <div class="tipoBanner" style="width: 33.33%;">
-                          <div class="dato-label">Ruta arte:</div>
-                        <div style="width: 33.33%;" class="dato-valor"> ${formData.rutaArte}</div>
-                      </div>
+                        <div class="tipoBanner" style="width: 33.33%;">
+                        <div class="dato-label">Periodicidad:</div>
+                        <div class="dato-valor">${formData.periodicidad || ''}</div>
+                        </div>
                     </div>
 
                     <!-- Vigencia (título de sección) -->
 
                     <!-- Inicio -->
                      <div class="dato-row" style="width: 100%;">
-
+<div class="tipoBanner" style="margin-right: 10px;width: 50%;">
+        <div class="dato-label">Preheader:</div>
+        <div class="dato-valor">${formData.preheader || ''}</div>  <!-- AÑÁDELO AQUÍ -->
+    </div>
                          <div class="tipoBanner" style="margin-right: 10px;width: 50%;  ">
                         <div class="dato-label">Segmento a dirigir:</div>
                         <div class="dato-valor">${Array.isArray(formData.segmento) ? formData.segmento.join(', ') : (formData.segmento || '')}</div>
                     </div>
-                   <div class="tipoBanner" style="width: 50%;">
-                        <div class="dato-label">Periodicidad:</div>
-                        <div class="dato-valor">${formData.periodicidad || ''}</div>
-                        </div>
                     </div>
                      <div class="dato-row" style="width: 100%;">
-                    <div class="tipoBanner" style="width: 100%;">
+                    <div class="tipoBanner" style="margin-right: 10px;width: 50%;">
                         <div class="dato-label">Subject:</div>
-                        <div class="dato-valor">${formData.subject || ''}</div>
+                        <div class="dato-valor url-field">${formData.subject || ''}</div>
                         </div>
-                    </div>
+                    
+                    <div class="tipoBanner" style="width: 50%;">
+                          <div class="dato-label">Ruta arte:</div>
+                        <div class="dato-valor"> ${formData.rutaArte}</div>
+                      </div>
+                      </div>
                 </td>
 
                 <!-- Columna derecha: Arte -->
@@ -530,6 +551,7 @@ const opt = {
             segmento: [],
             periodicidad: '',
             subject: '',
+            preheader:'',
             callToAction: '',
             comentarios: '',
             fechasPropuestas: '',
@@ -584,14 +606,17 @@ const opt = {
                         <Row>
                             <Col sm={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Aplicación/ Campaña</Form.Label>
-                                    <Form.Control 
-                                        type="text"
-                                        name="aplicacion"
-                                        value={formData.aplicacion}
-                                        onChange={handleChange}
-                                        placeholder="Ingresa la aplicación o campaña"
-                                    />
+                                    <Form.Label>Marca/ Aplicación/ Campaña</Form.Label>
+                                    <Form.Select
+                                            name="aplicacion"
+                                            value={formData.aplicacion}
+                                           onChange={handleChange} 
+                                        >
+                                            <option value="">Selecciona una opción</option>
+                                            <option value="Marca">Marca</option>
+                                            <option value="Aplicacion">Aplicación</option>
+                                            <option value="Campaña">Campaña</option>
+                                        </Form.Select>
                                 </Form.Group>
                             </Col>
 
@@ -629,20 +654,30 @@ const opt = {
         <Form.Label>Segmento a dirigir:</Form.Label>
 
         <ChipInput 
-            items={segmentos}
-            setItems={(list) => {
-                setSegmentos(list);
+    items={segmentos}
+    setItems={(list) => {
+        setSegmentos(list);
+        setFormData(prev => ({ ...prev, segmento: list }));
+    }}
+    placeholder="Ej: Medicina general, Enfermería..."
+    badgeColor="info"
+    
+    // ← Evita que repitan el mismo segmento
+    onValidate={(value) => {
+        const trimmed = value.trim();
 
-                // actualizar formData
-                setFormData(prev => ({
-                    ...prev,
-                    segmento: list
-                }));
-            }}
-            placeholder="Ej: Medicina general, Enfermería..."
-            badgeColor="info"
-            validate={(value) => value.trim().length > 0}
-        />
+        if (trimmed === '') {
+            return false;
+        }
+
+        if (segmentos.some(seg => seg.toLowerCase() === trimmed.toLowerCase())) {
+            alert(`¡El segmento "${trimmed}" ya fue agregado!`);
+            return false;
+        }
+
+        return true;
+    }}
+/>
     </Form.Group>
 </Col>
 
@@ -798,12 +833,25 @@ const opt = {
                     </Row>
 
                     <Row className="mb-3">
-                        <Col md={12}>
+                    <Col md={6}>
+                            <Form.Group>
+                                <Form.Label>Preheader:</Form.Label>
+                                <Form.Control
+                                    as="textarea"
+                                    rows={3}
+                                    name="preheader"
+                                    value={formData.preheader}
+                                    onChange={handleChange}
+                                    placeholder="Agrega el preheader"
+                                />
+                            </Form.Group>
+                        </Col>
+                        <Col md={6}>
                             <Form.Group>
                                 <Form.Label>Comentarios adicionales</Form.Label>
                                 <Form.Control
                                     as="textarea"
-                                    rows={4}
+                                    rows={3}
                                     name="comentarios"
                                     value={formData.comentarios}
                                     onChange={handleChange}
@@ -851,20 +899,33 @@ const opt = {
         <Form.Label>Correos de los clientes:</Form.Label>
 
         <ChipInput 
-             items={emailsClientes}
-             setItems={(list) => {
-                 setEmailsClientes(list);
- 
-                 // actualizar formData
-                 setFormData(prev => ({
-                     ...prev,
-                     correosClientes: list
-                 }));
-             }}
-             placeholder="Escribe un correo y presiona Enter"
-             validate={validateEmail}        // ⬅️ validación
-             badgeColor="primary"
-        />
+    items={emailsClientes}
+    setItems={(list) => {
+        setEmailsClientes(list);
+        setFormData(prev => ({ ...prev, correosClientes: list }));
+    }}
+    placeholder="Escribe un correo y presiona Enter"
+    badgeColor="primary"
+    
+    // ← AQUÍ LA MAGIA: detecta duplicados y emails inválidos
+    onValidate={(value) => {
+        const trimmed = value.trim().toLowerCase();
+
+        // 1. ¿Ya existe?
+        if (emailsClientes.some(email => email.toLowerCase() === trimmed)) {
+            alert(`¡Ese correo ya está agregado: ${trimmed}`);
+            return false;
+        }
+
+        // 2. ¿Es un email válido?
+        if (!/\S+@\S+\.\S+/.test(trimmed)) {
+            alert(`"${value}" no parece un correo válido`);
+            return false;
+        }
+
+        return true;
+    }}
+/>
 
         {/* Si necesitas mandarlo como string al backend */}
         <input type="hidden" name="correosClientes" value={emailsClientes.join(",")} />
