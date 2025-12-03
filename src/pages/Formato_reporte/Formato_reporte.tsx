@@ -53,7 +53,16 @@ function FormatoReporte() {
 
     // Tabla de segmentos
     const [segmentos, setSegmentos] = useState([
-        { id: 1, especialidad: '', usuarios: '', aperturas: '', porcentajeOpen: '', clics: '', ctr: '' }
+        {
+            id: 1,
+            especialidad: '',
+            usuarios: '',
+            aperturas: '',
+            porcentajeOpen: '',
+            clics: '',
+            ctr: '',
+            ctor: '',
+        }
     ]);
 
     // Segmentos enviados (texto libre)
@@ -255,7 +264,7 @@ function FormatoReporte() {
         }
     }, [metricas.aperturas, metricas.clic]);
 
-    const handleChange = (e) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
@@ -263,7 +272,7 @@ function FormatoReporte() {
         }));
     };
 
-    const handleMetricasChange = (e) => {
+    const handleMetricasChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setMetricas(prev => ({
             ...prev,
@@ -271,8 +280,8 @@ function FormatoReporte() {
         }));
     };
 
-    const handleFileChange = (e) => {
-        const file = e.target.files[0];
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
         if (file) {
             const reader = new FileReader();
             reader.onloadend = () => {
@@ -319,7 +328,7 @@ function FormatoReporte() {
         }
     };
 
-    const handleDrag = (e) => {
+    const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
         e.stopPropagation();
         if (e.type === "dragenter" || e.type === "dragover") {
@@ -329,7 +338,7 @@ function FormatoReporte() {
         }
     };
 
-    const handleDrop = (e) => {
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
         e.stopPropagation();
         setDragActive(false);
@@ -349,7 +358,7 @@ function FormatoReporte() {
         }
     };
 
-    const handleRemoveImage = (e) => {
+    const handleRemoveImage = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.stopPropagation();
         setFormData(prev => ({
             ...prev,
@@ -358,7 +367,7 @@ function FormatoReporte() {
     };
 
     // Funciones para manejar la tabla de segmentos
-    const handleSegmentoChange = (id, campo, valor) => {
+    const handleSegmentoChange = (id: number, campo: string, valor: string) => {
         setSegmentos(prevSegmentos =>
             prevSegmentos.map(segmento => {
                 if (segmento.id === id) {
@@ -370,11 +379,12 @@ function FormatoReporte() {
 
                     // Si el campo modificado afecta los cálculos, recalcular
                     if (campo === 'usuarios' || campo === 'aperturas' || campo === 'clics') {
-                        const { porcentajeOpen, ctr } = calcularPorcentajesSegmento(segmentoActualizado);
+                        const { porcentajeOpen, ctr, ctor } = calcularPorcentajesSegmento(segmentoActualizado);
                         return {
                             ...segmentoActualizado,
                             porcentajeOpen,
-                            ctr
+                            ctr,
+                            ctor
                         };
                     }
 
@@ -394,11 +404,12 @@ function FormatoReporte() {
             aperturas: '',
             porcentajeOpen: '',
             clics: '',
-            ctr: ''
+            ctr: '',
+            ctor: '',
         }]);
     };
 
-    const eliminarSegmento = (id) => {
+    const eliminarSegmento = (id: number) => {
         if (segmentos.length > 1) {
             setSegmentos(prev => prev.filter(seg => seg.id !== id));
         }
@@ -447,6 +458,7 @@ function FormatoReporte() {
                     <td style="padding: 6px; border-buttom: 1px solid #ddd; font-size: 11px; text-align: center;">${seg.porcentajeOpen || '-'}</td>
                     <td style="padding: 6px; border-buttom: 1px solid #ddd; font-size: 11px; text-align: center;">${seg.clics || '-'}</td>
                     <td style="padding: 6px; border-buttom: 1px solid #ddd; font-size: 11px; text-align: center;">${seg.ctr || '-'}</td>
+                    <td style="padding: 6px; border-buttom: 1px solid #ddd; font-size: 11px; text-align: center;">${seg.ctor || '-'}</td>
                 </tr>
             `).join('');
 
@@ -717,7 +729,7 @@ function FormatoReporte() {
         <div class="header">
             <table>
                 <tr>
-                    <td class="title">DETALLE DE CAMPAÑAS DE: ${formData.detalleCampana || 'SIN DETALLE'}</td>
+                    <td class="title">Marca/Aplicación/Campañas: ${formData.detalleCampana || 'SIN DETALLE'}</td>
                 </tr>
             </table>
         </div>
@@ -744,7 +756,7 @@ function FormatoReporte() {
     <!-- Columna izquierda -->
     <td style="width: 50%; vertical-align: top; padding-right: 5px;">
                                     <div class="dato-row">
-                                        <div class="dato-label">Nombre Campaña</div>
+                                        <div class="dato-label">Cliente/Laboratorio:</div>
                                         <div class="dato-valor">${formData.nombreCampana || ''}</div>
                                     </div>
                                     
@@ -830,6 +842,7 @@ function FormatoReporte() {
                                     <th>%Open</th>
                                     <th>Clics</th>
                                     <th>CTR</th>
+                                    <th>CTOR</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -963,7 +976,7 @@ function FormatoReporte() {
             ctor: ''
         });
         setSegmentos([
-            { id: 1, especialidad: '', usuarios: '', aperturas: '', porcentajeOpen: '', clics: '', ctr: '' }
+            { id: 1, especialidad: '', usuarios: '', aperturas: '', porcentajeOpen: '', clics: '', ctr: '', ctor: '', }
         ]);
         setSegmentosEnviados('');
         setMensaje({ tipo: '', texto: '' });
@@ -974,25 +987,31 @@ function FormatoReporte() {
         return today.toLocaleDateString('es-MX');
     };
 
-    const calcularPorcentajesSegmento = (segmento) => {
+    const calcularPorcentajesSegmento = (segmento: any) => {
         const usuarios = parseFloat(segmento.usuarios) || 0;
         const aperturas = parseFloat(segmento.aperturas) || 0;
         const clics = parseFloat(segmento.clics) || 0;
 
         let porcentajeOpen = '';
         let ctr = '';
+        let ctor = '';
 
-        // Calcular %Open = aperturas / usuarios * 100
-        if (usuarios > 0 && aperturas > 0) {
+        // %Open = aperturas / usuarios * 100
+        if (usuarios > 0 && aperturas >= 0) {
             porcentajeOpen = ((aperturas / usuarios) * 100).toFixed(2);
         }
 
-        // Calcular CTR = clics / usuarios * 100
-        if (usuarios > 0 && clics > 0) {
+        // CTR = clics / usuarios * 100
+        if (usuarios > 0 && clics >= 0) {
             ctr = ((clics / usuarios) * 100).toFixed(2);
         }
 
-        return { porcentajeOpen, ctr };
+        // CTOR = clics / aperturas * 100
+        if (aperturas > 0 && clics >= 0) {
+            ctor = ((clics / aperturas) * 100).toFixed(2);
+        }
+
+        return { porcentajeOpen, ctr, ctor };
     };
 
     return (
@@ -1044,7 +1063,7 @@ function FormatoReporte() {
                         <Row>
                             <Col sm={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Detalle de campañas</Form.Label>
+                                    <Form.Label>Marca/Aplicación/Campañas:</Form.Label>
                                     <Form.Control
                                         type="text"
                                         name="detalleCampana"
@@ -1057,7 +1076,7 @@ function FormatoReporte() {
 
                             <Col sm={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Nombre de la campaña:</Form.Label>
+                                    <Form.Label>Cliente/Laboratorio</Form.Label>
                                     <Form.Control
                                         type="text"
                                         name="nombreCampana"
@@ -1301,7 +1320,7 @@ function FormatoReporte() {
                         </Col>
                         <Col md={2}>
                             <Form.Group className="mb-3">
-                                <Form.Label>CTOR entre aperturas</Form.Label>
+                                <Form.Label>CTOR</Form.Label>
                                 <div style={{ position: 'relative' }}>
                                     <Form.Control
                                         type="text"
@@ -1357,6 +1376,7 @@ function FormatoReporte() {
                                     <th>Clics</th>
                                     <th>%Open</th>
                                     <th>CTR</th>
+                                    <th>CTOR</th>
                                     <th style={{ width: '80px' }}>Acción</th>
                                 </tr>
                             </thead>
@@ -1432,6 +1452,32 @@ function FormatoReporte() {
                                                     size="sm"
                                                     type="text"
                                                     value={segmento.ctr}
+                                                    readOnly
+                                                    placeholder="0.00"
+                                                    style={{
+                                                        backgroundColor: '#e9ecef',
+                                                        paddingRight: '30px'
+                                                    }}
+                                                />
+                                                <span style={{
+                                                    position: 'absolute',
+                                                    right: '10px',
+                                                    top: '50%',
+                                                    transform: 'translateY(-50%)',
+                                                    pointerEvents: 'none',
+                                                    color: '#6c757d',
+                                                    fontSize: '0.875rem'
+                                                }}>
+                                                    %
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div style={{ position: 'relative' }}>
+                                                <Form.Control
+                                                    size="sm"
+                                                    type="text"
+                                                    value={segmento.ctor}
                                                     readOnly
                                                     placeholder="0.00"
                                                     style={{
